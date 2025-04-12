@@ -6,6 +6,7 @@ import { Link, useLocation } from 'react-router-dom';
 const Footer: React.FC = () => {
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isProfile = location.pathname === '/profile';
   
   return (
     <footer className="fixed bottom-0 left-0 right-0 h-footer bg-vent-bg border-t border-gray-800 z-10">
@@ -22,9 +23,9 @@ const Footer: React.FC = () => {
           <span className="font-medium">Vent Now</span>
         </Link>
         
-        <div className="text-white">
-          <User className="h-6 w-6" />
-        </div>
+        <Link to="/profile" className="text-white">
+          <User className={`h-6 w-6 ${isProfile ? 'text-twitter' : 'text-white'}`} />
+        </Link>
       </div>
     </footer>
   );
