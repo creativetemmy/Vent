@@ -2,14 +2,24 @@
 import React from 'react';
 import { ThumbsUp, ThumbsDown, MessageSquare, Share } from 'lucide-react';
 import { Vent } from '../data/vents';
+import { useNavigate } from 'react-router-dom';
 
 interface VentCardProps {
   vent: Vent;
 }
 
 const VentCard: React.FC<VentCardProps> = ({ vent }) => {
+  const navigate = useNavigate();
+  
+  const handleCardClick = () => {
+    navigate(`/vent/${vent.id}`);
+  };
+  
   return (
-    <div className="w-full max-w-[343px] bg-vent-card rounded-lg p-3 mb-3">
+    <div 
+      className="w-full max-w-[343px] bg-vent-card rounded-lg p-3 mb-3 cursor-pointer hover:bg-gray-700 transition-colors"
+      onClick={handleCardClick}
+    >
       <div className="flex justify-between items-start mb-2">
         <span className="font-bold text-base">{vent.username}</span>
         <span className="text-sm text-vent-muted">{vent.timeAgo}</span>
@@ -55,7 +65,7 @@ const VentCard: React.FC<VentCardProps> = ({ vent }) => {
             <span className="text-white text-sm">{vent.comments}</span>
           </div>
         </div>
-        <div>
+        <div onClick={(e) => e.stopPropagation()}>
           <Share className="h-4 w-4 text-white cursor-pointer" />
         </div>
       </div>
