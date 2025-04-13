@@ -1,13 +1,6 @@
 
 import React from 'react';
-
-interface PointsHistoryItem {
-  id: string;
-  date: string;
-  action: string;
-  points: number;
-  content: string;
-}
+import { PointsHistoryItem } from '@/hooks/useUserProfile';
 
 interface PointsHistoryCardProps {
   item: PointsHistoryItem;

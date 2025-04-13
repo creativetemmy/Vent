@@ -4,28 +4,12 @@ import ProfileVentCard from './ProfileVentCard';
 import VoteCard from './VoteCard';
 import PointsHistoryCard from './PointsHistoryCard';
 import { Vent } from '@/data/vents';
-
-// Types for the mock data
-interface Vote {
-  id: string;
-  type: 'upvote' | 'downvote';
-  username: string;
-  project: string;
-  content: string;
-}
-
-interface PointsHistoryItem {
-  id: string;
-  date: string;
-  action: string;
-  points: number;
-  content: string;
-}
+import { UserVote, PointsHistoryItem } from '@/hooks/useUserProfile';
 
 interface ProfileContentProps {
   activeTab: 'vents' | 'votes' | 'history';
   userVents: Vent[];
-  userVotes: Vote[];
+  userVotes: UserVote[];
   pointsHistory: PointsHistoryItem[];
 }
 
@@ -39,25 +23,43 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     <div className="max-w-[343px] mx-auto">
       {activeTab === 'vents' && (
         <>
-          {userVents.map(vent => (
-            <ProfileVentCard key={vent.id} vent={vent} />
-          ))}
+          {userVents.length > 0 ? (
+            userVents.map(vent => (
+              <ProfileVentCard key={vent.id} vent={vent} />
+            ))
+          ) : (
+            <div className="text-center text-vent-muted py-8">
+              No vents yet
+            </div>
+          )}
         </>
       )}
       
       {activeTab === 'votes' && (
         <>
-          {userVotes.map(vote => (
-            <VoteCard key={vote.id} vote={vote} />
-          ))}
+          {userVotes.length > 0 ? (
+            userVotes.map(vote => (
+              <VoteCard key={vote.id} vote={vote} />
+            ))
+          ) : (
+            <div className="text-center text-vent-muted py-8">
+              No votes yet
+            </div>
+          )}
         </>
       )}
       
       {activeTab === 'history' && (
         <>
-          {pointsHistory.map(item => (
-            <PointsHistoryCard key={item.id} item={item} />
-          ))}
+          {pointsHistory.length > 0 ? (
+            pointsHistory.map(item => (
+              <PointsHistoryCard key={item.id} item={item} />
+            ))
+          ) : (
+            <div className="text-center text-vent-muted py-8">
+              No points history yet
+            </div>
+          )}
         </>
       )}
     </div>

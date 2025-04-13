@@ -1,17 +1,10 @@
 
 import React from 'react';
 import { CheckCircle, ThumbsDown } from 'lucide-react';
-
-interface Vote {
-  id: string;
-  type: 'upvote' | 'downvote';
-  username: string;
-  project: string;
-  content: string;
-}
+import { UserVote } from '@/hooks/useUserProfile';
 
 interface VoteCardProps {
-  vote: Vote;
+  vote: UserVote;
 }
 
 const VoteCard: React.FC<VoteCardProps> = ({ vote }) => {
