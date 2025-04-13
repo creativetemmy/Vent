@@ -9,6 +9,7 @@ import VentNow from "./pages/VentNow";
 import VentDetails from "./pages/VentDetails";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Splash from "./pages/Splash";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/splash" element={<Splash />} />
           <Route path="/" element={<Index />} />
           <Route path="/vent-now" element={<VentNow />} />
           <Route path="/vent/:id" element={<VentDetails />} />
