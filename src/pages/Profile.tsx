@@ -28,14 +28,14 @@ const mockUserVents: Vent[] = [
 const mockUserVotes = [
   {
     id: '1',
-    type: 'upvote',
+    type: 'upvote' as 'upvote',
     username: '@user2.eth',
     project: 'Aave',
     content: 'Aave\'s new update is amazing!'
   },
   {
     id: '2',
-    type: 'downvote',
+    type: 'downvote' as 'downvote',
     username: '@user3.eth',
     project: 'Lens',
     content: 'Lens protocol has too many bugs'
