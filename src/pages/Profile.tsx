@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wallet, CheckCircle, ThumbsDown, ThumbsUp, Calendar } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { Vent } from '@/data/vents';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import ProfileTabs from '@/components/profile/ProfileTabs';
+import ProfileContent from '@/components/profile/ProfileContent';
 
 // Mock data for profile
 const mockUserVents: Vent[] = [
@@ -64,73 +67,6 @@ const mockPointsHistory = [
   }
 ];
 
-const ProfileVentCard: React.FC<{ vent: Vent }> = ({ vent }) => {
-  return (
-    <div className="w-full bg-vent-card rounded-lg p-3 mb-3">
-      <p className="text-base mb-2">{vent.content}</p>
-      
-      {vent.image && (
-        <div className="mb-2">
-          <img 
-            src={vent.image} 
-            alt="Vent evidence" 
-            className="h-20 w-20 object-cover rounded"
-          />
-        </div>
-      )}
-      
-      <div className="flex flex-wrap gap-1 mb-1">
-        {vent.hashtags.map((tag, index) => (
-          <span key={index} className="text-twitter text-sm cursor-pointer hover:underline">
-            {tag}
-          </span>
-        ))}
-        {vent.mentions.map((mention, index) => (
-          <span key={index} className="text-twitter text-sm cursor-pointer hover:underline ml-1">
-            {mention}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const VoteCard: React.FC<{ vote: typeof mockUserVotes[0] }> = ({ vote }) => {
-  return (
-    <div className="w-full bg-vent-card rounded-lg p-3 mb-3">
-      <div className="flex items-center gap-2">
-        {vote.type === 'upvote' ? (
-          <>
-            <span className="text-white text-sm">Upvoted:</span>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </>
-        ) : (
-          <>
-            <span className="text-white text-sm">Downvoted:</span>
-            <ThumbsDown className="h-4 w-4 text-red-500" />
-          </>
-        )}
-        <span className="text-white text-sm">{vote.username}'s {vote.project} vent</span>
-      </div>
-      <p className="text-sm text-vent-muted mt-1">{vote.content}</p>
-    </div>
-  );
-};
-
-const PointsHistoryCard: React.FC<{ item: typeof mockPointsHistory[0] }> = ({ item }) => {
-  return (
-    <div className="w-full bg-vent-card rounded-lg p-3 mb-3">
-      <div className="flex justify-between items-start">
-        <span className="text-white text-sm">{item.date}: {item.action}</span>
-        <span className={`text-sm ${item.points < 0 ? 'text-red-500' : 'text-green-500'}`}>
-          {item.points > 0 ? '+' : ''}{item.points} 🌟
-        </span>
-      </div>
-      <p className="text-sm text-twitter mt-1 hover:underline cursor-pointer">{item.content}</p>
-    </div>
-  );
-};
-
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'vents' | 'votes' | 'history'>('vents');
@@ -153,89 +89,26 @@ const Profile: React.FC = () => {
       </header>
       
       <main className="flex-1 max-w-lg mx-auto w-full pt-[calc(56px+1rem)] pb-footer px-4">
-        <div className="flex flex-col items-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">@user.eth</h2>
-          
-          <div className="flex items-center gap-1 text-vent-muted mb-4">
-            <Wallet className="h-4 w-4" />
-            <span className="text-sm">0x123...456</span>
-          </div>
-          
-          <div className="bg-gradient-to-r from-twitter to-[#7B61FF] rounded-lg px-6 py-2 mb-1 w-full text-center">
-            <span className="text-xl font-bold text-white">100 🌟</span>
-          </div>
-          
-          <div className="flex items-center gap-1 text-vent-muted mb-4">
-            <Calendar className="h-3 w-3" />
-            <span className="text-xs">Reset: Apr 1, 2025</span>
-          </div>
-          
-          <div className="flex gap-6 text-sm text-white">
-            <div>Vents: 3</div>
-            <div>Votes: 5</div>
-          </div>
-        </div>
+        <ProfileHeader 
+          username="@user.eth"
+          walletAddress="0x123...456"
+          points={100}
+          resetDate="Apr 1, 2025"
+          ventsCount={3}
+          votesCount={5}
+        />
         
-        <div className="h-tabs border-b border-gray-800 mb-4">
-          <div className="flex h-full">
-            <button
-              className={`px-4 h-full flex items-center text-sm relative
-                ${activeTab === 'vents' ? 'text-twitter font-medium' : 'text-white'}`}
-              onClick={() => setActiveTab('vents')}
-            >
-              My Vents
-              {activeTab === 'vents' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-twitter" />
-              )}
-            </button>
-            <button
-              className={`px-4 h-full flex items-center text-sm relative
-                ${activeTab === 'votes' ? 'text-twitter font-medium' : 'text-white'}`}
-              onClick={() => setActiveTab('votes')}
-            >
-              My Votes
-              {activeTab === 'votes' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-twitter" />
-              )}
-            </button>
-            <button
-              className={`px-4 h-full flex items-center text-sm relative
-                ${activeTab === 'history' ? 'text-twitter font-medium' : 'text-white'}`}
-              onClick={() => setActiveTab('history')}
-            >
-              Points History
-              {activeTab === 'history' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-twitter" />
-              )}
-            </button>
-          </div>
-        </div>
+        <ProfileTabs 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
         
-        <div className="max-w-[343px] mx-auto">
-          {activeTab === 'vents' && (
-            <>
-              {mockUserVents.map(vent => (
-                <ProfileVentCard key={vent.id} vent={vent} />
-              ))}
-            </>
-          )}
-          
-          {activeTab === 'votes' && (
-            <>
-              {mockUserVotes.map(vote => (
-                <VoteCard key={vote.id} vote={vote} />
-              ))}
-            </>
-          )}
-          
-          {activeTab === 'history' && (
-            <>
-              {mockPointsHistory.map(item => (
-                <PointsHistoryCard key={item.id} item={item} />
-              ))}
-            </>
-          )}
-        </div>
+        <ProfileContent 
+          activeTab={activeTab}
+          userVents={mockUserVents}
+          userVotes={mockUserVotes}
+          pointsHistory={mockPointsHistory}
+        />
       </main>
       
       <Footer />
