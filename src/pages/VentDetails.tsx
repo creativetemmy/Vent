@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Share, ThumbsUp, ThumbsDown, MessageSquare, Check } from 'lucide-react';
+import { ArrowLeft, Share, ThumbsUp, ThumbsDown, MessageSquare, Check, Star } from 'lucide-react';
 import { ventData } from '../data/vents';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -164,7 +164,7 @@ const VentDetails: React.FC = () => {
               className="bg-twitter hover:bg-twitter/90 h-10 px-4 flex items-center gap-2 mt-3"
             >
               <MessageSquare className="h-4 w-4" />
-              <span>Add Counter-Vent</span>
+              <span>Add Counter-Vent (20 🌟)</span>
             </Button>
           </div>
         </ScrollArea>
@@ -176,14 +176,22 @@ const VentDetails: React.FC = () => {
           <div className="flex flex-col items-center">
             <button className="flex flex-col items-center gap-1">
               <ThumbsUp className="h-6 w-6 text-green-500" />
-              <span className="text-green-500 text-sm">{vent.upvotes}</span>
+              <div className="flex items-center">
+                <span className="text-green-500 text-sm">{vent.upvotes}</span>
+                <Star className="h-3 w-3 text-twitter ml-1" />
+                <span className="text-twitter text-xs">10</span>
+              </div>
             </button>
           </div>
           
           <div className="flex flex-col items-center">
             <button className="flex flex-col items-center gap-1">
               <ThumbsDown className="h-6 w-6 text-red-500" />
-              <span className="text-red-500 text-sm">{vent.downvotes}</span>
+              <div className="flex items-center">
+                <span className="text-red-500 text-sm">{vent.downvotes}</span>
+                <Star className="h-3 w-3 text-twitter ml-1" />
+                <span className="text-twitter text-xs">10</span>
+              </div>
             </button>
           </div>
         </div>

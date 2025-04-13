@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Star } from 'lucide-react';
 import ContentInput from './ContentInput';
 import EvidenceUpload from './EvidenceUpload';
 import TagInput from './TagInput';
@@ -106,13 +107,18 @@ const VentForm: React.FC = () => {
         onRemoveTag={removeTag}
       />
       
+      <div className="flex items-center gap-2 bg-vent-card rounded-lg p-3">
+        <Star className="h-4 w-4 text-twitter" />
+        <span className="text-sm text-white">Venting costs 20 🌟</span>
+      </div>
+      
       <Button
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitDisabled}
         className="w-full h-12 mt-4 rounded-lg font-bold bg-gradient-to-r from-twitter to-[#7B61FF] hover:opacity-90 disabled:opacity-50"
       >
-        Post Vent (20 points)
+        Post Vent (20 🌟)
       </Button>
     </form>
   );

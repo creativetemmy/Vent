@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const VentHeader: React.FC = () => {
@@ -18,8 +18,9 @@ const VentHeader: React.FC = () => {
         
         <h1 className="text-xl font-bold text-white">Vent Now</h1>
         
-        <div className="flex items-center gap-1 text-white">
-          <span className="text-base">100 Points</span>
+        <div className="flex items-center gap-1 text-white bg-gradient-to-r from-twitter to-[#7B61FF] px-3 py-1 rounded-full">
+          <Wallet className="h-4 w-4" />
+          <span className="text-base">100 🌟</span>
         </div>
       </div>
     </header>

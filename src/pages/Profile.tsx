@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wallet, CheckCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft, Wallet, CheckCircle, ThumbsDown, ThumbsUp, Calendar } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { Vent } from '@/data/vents';
 
@@ -21,6 +21,7 @@ const mockUserVents: Vent[] = [
   }
 ];
 
+// Mock data for user votes
 const mockUserVotes = [
   {
     id: '1',
@@ -35,6 +36,31 @@ const mockUserVotes = [
     username: '@user3.eth',
     project: 'Lens',
     content: 'Lens protocol has too many bugs'
+  }
+];
+
+// Mock data for points history
+const mockPointsHistory = [
+  {
+    id: '1',
+    date: 'Apr 10, 2025',
+    action: 'Vented',
+    points: -20,
+    content: 'Uniswap fees ate my ETH!'
+  },
+  {
+    id: '2',
+    date: 'Apr 9, 2025',
+    action: 'Upvoted',
+    points: -10,
+    content: '@user2.eth\'s Aave vent'
+  },
+  {
+    id: '3',
+    date: 'Apr 8, 2025',
+    action: 'Downvoted',
+    points: -10,
+    content: '@user3.eth\'s Lens vent'
   }
 ];
 
@@ -91,9 +117,23 @@ const VoteCard: React.FC<{ vote: typeof mockUserVotes[0] }> = ({ vote }) => {
   );
 };
 
+const PointsHistoryCard: React.FC<{ item: typeof mockPointsHistory[0] }> = ({ item }) => {
+  return (
+    <div className="w-full bg-vent-card rounded-lg p-3 mb-3">
+      <div className="flex justify-between items-start">
+        <span className="text-white text-sm">{item.date}: {item.action}</span>
+        <span className={`text-sm ${item.points < 0 ? 'text-red-500' : 'text-green-500'}`}>
+          {item.points > 0 ? '+' : ''}{item.points} 🌟
+        </span>
+      </div>
+      <p className="text-sm text-twitter mt-1 hover:underline cursor-pointer">{item.content}</p>
+    </div>
+  );
+};
+
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'vents' | 'votes'>('vents');
+  const [activeTab, setActiveTab] = useState<'vents' | 'votes' | 'history'>('vents');
   
   return (
     <div className="min-h-screen bg-vent-bg flex flex-col">
@@ -121,13 +161,18 @@ const Profile: React.FC = () => {
             <span className="text-sm">0x123...456</span>
           </div>
           
-          <div className="bg-gradient-to-r from-twitter to-[#7B61FF] rounded-lg px-6 py-2 mb-4">
-            <span className="text-xl font-bold text-white">100 Points</span>
+          <div className="bg-gradient-to-r from-twitter to-[#7B61FF] rounded-lg px-6 py-2 mb-1 w-full text-center">
+            <span className="text-xl font-bold text-white">100 🌟</span>
+          </div>
+          
+          <div className="flex items-center gap-1 text-vent-muted mb-4">
+            <Calendar className="h-3 w-3" />
+            <span className="text-xs">Reset: Apr 1, 2025</span>
           </div>
           
           <div className="flex gap-6 text-sm text-white">
-            <div>Vents Posted: 3</div>
-            <div>Votes Cast: 5</div>
+            <div>Vents: 3</div>
+            <div>Votes: 5</div>
           </div>
         </div>
         
@@ -153,20 +198,40 @@ const Profile: React.FC = () => {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-twitter" />
               )}
             </button>
+            <button
+              className={`px-4 h-full flex items-center text-sm relative
+                ${activeTab === 'history' ? 'text-twitter font-medium' : 'text-white'}`}
+              onClick={() => setActiveTab('history')}
+            >
+              Points History
+              {activeTab === 'history' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-twitter" />
+              )}
+            </button>
           </div>
         </div>
         
         <div className="max-w-[343px] mx-auto">
-          {activeTab === 'vents' ? (
+          {activeTab === 'vents' && (
             <>
               {mockUserVents.map(vent => (
                 <ProfileVentCard key={vent.id} vent={vent} />
               ))}
             </>
-          ) : (
+          )}
+          
+          {activeTab === 'votes' && (
             <>
               {mockUserVotes.map(vote => (
                 <VoteCard key={vote.id} vote={vote} />
+              ))}
+            </>
+          )}
+          
+          {activeTab === 'history' && (
+            <>
+              {mockPointsHistory.map(item => (
+                <PointsHistoryCard key={item.id} item={item} />
               ))}
             </>
           )}

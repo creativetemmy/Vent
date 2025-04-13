@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ThumbsUp, ThumbsDown, MessageSquare, Share } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, Share, Star } from 'lucide-react';
 import { Vent } from '../data/vents';
 import { useNavigate } from 'react-router-dom';
 
@@ -55,14 +55,20 @@ const VentCard: React.FC<VentCardProps> = ({ vent }) => {
           <div className="flex items-center gap-1">
             <ThumbsUp className="h-4 w-4 text-green-500" />
             <span className="text-green-500 text-sm">{vent.upvotes}</span>
+            <Star className="h-3 w-3 text-twitter ml-1" />
+            <span className="text-twitter text-xs">10</span>
           </div>
           <div className="flex items-center gap-1">
             <ThumbsDown className="h-4 w-4 text-red-500" />
             <span className="text-red-500 text-sm">{vent.downvotes}</span>
+            <Star className="h-3 w-3 text-twitter ml-1" />
+            <span className="text-twitter text-xs">10</span>
           </div>
           <div className="flex items-center gap-1">
             <MessageSquare className="h-4 w-4 text-white" />
             <span className="text-white text-sm">{vent.comments}</span>
+            <Star className="h-3 w-3 text-twitter ml-1" />
+            <span className="text-twitter text-xs">20</span>
           </div>
         </div>
         <div onClick={(e) => e.stopPropagation()}>
