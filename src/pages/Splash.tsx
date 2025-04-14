@@ -1,8 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Star, Chain, Wallet } from 'lucide-react';
 
 const Splash: React.FC = () => {
   const navigate = useNavigate();
@@ -10,37 +9,44 @@ const Splash: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate('/');
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-vent-bg flex flex-col items-center justify-center text-white p-4">
-      <motion.div 
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, type: "spring", stiffness: 120 }}
-        className="flex flex-col items-center"
-      >
-        <div className="flex items-center mb-4">
-          <Star className="h-16 w-16 text-twitter mr-2" />
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-twitter to-[#7B61FF] text-transparent bg-clip-text">
-            Vent
+    <div className="min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#121212] flex flex-col items-center justify-center px-4">
+      <div className="animate-fade-in">
+        <div className="flex flex-col items-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-twitter to-[#7B61FF] bg-clip-text text-transparent mb-2">
+            VentVerse
           </h1>
+          <p className="text-white text-lg text-center max-w-[300px]">
+            Share Your Truth. Find Your Voice.
+          </p>
         </div>
         
-        <p className="text-xl text-center mb-8 max-w-md">
-          Speak your truth, one hashtag at a time.
-        </p>
+        <div className="flex flex-col gap-6 items-center mb-12 w-full max-w-[343px]">
+          <div className="bg-vent-card p-4 rounded-lg w-full flex items-center gap-3 animate-pulse">
+            <Star className="h-6 w-6 text-yellow-500" />
+            <span className="text-white text-lg">Earn stars for honest feedback</span>
+          </div>
+          
+          <div className="bg-vent-card p-4 rounded-lg w-full flex items-center gap-3 animate-pulse delay-75">
+            <Chain className="h-6 w-6 text-twitter" />
+            <span className="text-white text-lg">Onchain evidence for transparency</span>
+          </div>
+          
+          <div className="bg-vent-card p-4 rounded-lg w-full flex items-center gap-3 animate-pulse delay-150">
+            <Wallet className="h-6 w-6 text-twitter" />
+            <span className="text-white text-lg">Connect with your DID</span>
+          </div>
+        </div>
         
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="w-24 h-1 bg-gradient-to-r from-twitter to-[#7B61FF] rounded-full"
-        />
-      </motion.div>
+        <div className="text-white text-lg text-center pulse">
+          Building a better Web3, together.
+        </div>
+      </div>
     </div>
   );
 };

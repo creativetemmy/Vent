@@ -19,11 +19,11 @@ const ContentInput: React.FC<ContentInputProps> = ({
     <div className="relative">
       <Textarea
         placeholder="What's your Web3 experience? Be honest..."
-        className="min-h-[200px] w-full bg-vent-card text-white border-none rounded-lg p-3 resize-none"
+        className="min-h-[150px] w-full bg-vent-card text-white text-base border-none rounded-lg p-4 resize-none"
         value={content}
         onChange={onContentChange}
       />
-      <div className={`absolute bottom-2 right-3 text-sm ${isOverCharLimit ? 'text-red-500' : 'text-vent-muted'}`}>
+      <div className={`absolute bottom-3 right-4 text-base ${isOverCharLimit ? 'text-red-500' : 'text-vent-muted'}`}>
         {content.length}/{maxCharCount}
       </div>
     </div>

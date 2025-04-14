@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Hash } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface TagInputProps {
@@ -19,33 +19,40 @@ const TagInput: React.FC<TagInputProps> = ({
   onRemoveTag
 }) => {
   return (
-    <div className="relative">
+    <div className="bg-vent-card rounded-lg p-4 w-full">
+      <div className="flex items-center gap-2 mb-3">
+        <Hash className="h-5 w-5 text-twitter" />
+        <span className="text-base text-white">Tags</span>
+      </div>
+      
       <Input
-        className="w-full bg-vent-card text-white border-none rounded-lg p-3"
+        className="w-full h-12 bg-[#1E1E1E] text-white text-base border-none rounded-lg p-3 mb-3"
         placeholder="Add #project or @project..."
         value={tagInput}
         onChange={onTagInputChange}
         onKeyDown={onTagInputKeyDown}
       />
       
-      {tags.length > 0 && (
+      {tags.length > 0 ? (
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag, index) => (
             <div 
               key={index} 
-              className="flex items-center gap-1 bg-twitter/20 text-twitter rounded-full px-2 py-1"
+              className="flex items-center gap-1 bg-twitter/20 text-twitter rounded-full px-3 py-2"
             >
-              <span>{tag}</span>
+              <span className="text-base">{tag}</span>
               <button 
                 type="button" 
                 onClick={() => onRemoveTag(tag)}
-                className="hover:bg-black/20 rounded-full"
+                className="hover:bg-black/20 rounded-full p-1"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ))}
         </div>
+      ) : (
+        <div className="text-vent-muted text-base">No tags added yet</div>
       )}
     </div>
   );

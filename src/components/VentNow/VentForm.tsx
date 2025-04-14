@@ -2,19 +2,24 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Star } from 'lucide-react';
+import { Star, Star as StarIcon, Chain, Wallet } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import ContentInput from './ContentInput';
 import EvidenceUpload from './EvidenceUpload';
 import TagInput from './TagInput';
 
 const MAX_CHAR_COUNT = 280;
+const VENT_COST = 20;
 
 const VentForm: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [evidence, setEvidence] = useState<string | null>(null);
+  const [userPoints, setUserPoints] = useState(30); // Mock user points, would come from auth
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -68,23 +73,51 @@ const VentForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // Here you would typically send the vent data to your backend
-    console.log({
-      content,
-      tags,
-      evidence
-    });
+  const handleSubmit = async () => {
+    if (userPoints < VENT_COST) {
+      toast({
+        title: "Insufficient Points",
+        description: `You need ${VENT_COST} stars to post a vent. You currently have ${userPoints}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     
-    // Navigate back to the home page after posting
-    navigate('/');
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Log on Optimism (mock)
+      console.log("Logging vent on Optimism...");
+      
+      // Deduct points
+      setUserPoints(prev => prev - VENT_COST);
+      
+      toast({
+        title: "Vent Posted",
+        description: `Your vent has been posted and ${VENT_COST} stars have been deducted.`,
+      });
+      
+      // Navigate back to the home page after posting
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to post your vent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isOverCharLimit = content.length > MAX_CHAR_COUNT;
-  const isSubmitDisabled = !content.trim() || isOverCharLimit;
+  const isSubmitDisabled = !content.trim() || isOverCharLimit || isSubmitting || userPoints < VENT_COST;
 
   return (
-    <form className="w-full max-w-[343px] mx-auto flex flex-col gap-4">
+    <form className="w-full max-w-[343px] mx-auto flex flex-col gap-6 animate-fade-in">
       <ContentInput 
         content={content}
         onContentChange={handleContentChange}
@@ -107,19 +140,30 @@ const VentForm: React.FC = () => {
         onRemoveTag={removeTag}
       />
       
-      <div className="flex items-center gap-2 bg-vent-card rounded-lg p-3">
-        <Star className="h-4 w-4 text-twitter" />
-        <span className="text-sm text-white">Venting costs 20 🌟</span>
+      <div className="flex items-center gap-2 bg-vent-card rounded-lg p-4 pulse">
+        <Wallet className="h-5 w-5 text-twitter" />
+        <span className="text-base text-white">Account: user.eth</span>
+      </div>
+      
+      <div className="flex items-center gap-2 bg-vent-card rounded-lg p-4 pulse">
+        <StarIcon className="h-5 w-5 text-yellow-500" />
+        <span className="text-base text-white">Available: {userPoints} stars</span>
       </div>
       
       <Button
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitDisabled}
-        className="w-full h-12 mt-4 rounded-lg font-bold bg-gradient-to-r from-twitter to-[#7B61FF] hover:opacity-90 disabled:opacity-50"
+        className="w-full h-12 mt-4 rounded-lg text-base font-bold bg-twitter hover:bg-twitter/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Post Vent (20 🌟)
+        {isSubmitting ? "Posting..." : `Post Vent (${VENT_COST} ⭐)`}
       </Button>
+      
+      {userPoints < VENT_COST && (
+        <p className="text-red-500 text-center">
+          Insufficient stars. You need {VENT_COST} stars to post.
+        </p>
+      )}
     </form>
   );
 };
