@@ -10,6 +10,7 @@ export interface Vent {
   upvotes: number;
   downvotes: number;
   comments: number;
+  txHash?: string; // Add the txHash property as optional
 }
 
 export const ventData: Vent[] = [
@@ -23,7 +24,8 @@ export const ventData: Vent[] = [
     mentions: ["@Uniswap"],
     upvotes: 12,
     downvotes: 3,
-    comments: 5
+    comments: 5,
+    txHash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
   },
   {
     id: "2",
@@ -35,7 +37,8 @@ export const ventData: Vent[] = [
     mentions: ["@OpenSea"],
     upvotes: 34,
     downvotes: 2,
-    comments: 12
+    comments: 12,
+    txHash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
   },
   {
     id: "3",
@@ -58,7 +61,8 @@ export const ventData: Vent[] = [
     mentions: ["@Solana"],
     upvotes: 56,
     downvotes: 14,
-    comments: 23
+    comments: 23,
+    txHash: "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456"
   },
   {
     id: "5",

@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ThumbsUp, ThumbsDown, MessageSquare, Share, Star, Chain, Wallet } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, Share, Star, Link, Wallet } from 'lucide-react';
 import { Vent } from '../data/vents';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -75,7 +74,7 @@ const VentCard: React.FC<VentCardProps> = ({ vent }) => {
                 alt="Vent evidence" 
                 className="h-16 w-16 object-cover rounded"
               />
-              <Chain className="absolute bottom-1 right-1 h-4 w-4 text-white bg-black/50 rounded-full p-0.5" />
+              <Link className="absolute bottom-1 right-1 h-4 w-4 text-white bg-black/50 rounded-full p-0.5" />
             </div>
           </div>
         )}

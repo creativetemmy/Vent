@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Chain, Wallet } from 'lucide-react';
+import { Star, Link, Wallet } from 'lucide-react';
 
 const Splash: React.FC = () => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ const Splash: React.FC = () => {
           </div>
           
           <div className="bg-vent-card p-4 rounded-lg w-full flex items-center gap-3 animate-pulse delay-75">
-            <Chain className="h-6 w-6 text-twitter" />
+            <Link className="h-6 w-6 text-twitter" />
             <span className="text-white text-lg">Onchain evidence for transparency</span>
           </div>
           

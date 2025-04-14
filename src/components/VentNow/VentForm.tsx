@@ -1,8 +1,7 @@
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Star, Star as StarIcon, Chain, Wallet } from 'lucide-react';
+import { Star, Star as StarIcon, Link, Wallet } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ContentInput from './ContentInput';
 import EvidenceUpload from './EvidenceUpload';

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Upload, X, Chain } from 'lucide-react';
+import { Upload, X, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EvidenceUploadProps {
@@ -22,7 +22,7 @@ const EvidenceUpload: React.FC<EvidenceUploadProps> = ({
     <div className="bg-vent-card rounded-lg p-4 w-full">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
-          <Chain className="h-5 w-5 text-twitter" />
+          <Link className="h-5 w-5 text-twitter" />
           <span className="text-base text-white">Evidence</span>
         </div>
         
