@@ -151,11 +151,9 @@ const Auth = () => {
                   variant: 'destructive',
                 });
               }}
-            >
-              <Button variant="outline" className="w-full">
-                Connect with Farcaster
-              </Button>
-            </SignInButton>
+              text="Connect with Farcaster"
+              variant="outline"
+            />
           </AuthKitProvider>
         </div>
       </div>
