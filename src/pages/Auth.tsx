@@ -5,8 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { AuthKitProvider } from '@farcaster/auth-kit';
-import '@farcaster/auth-kit/styles.css';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -43,58 +41,31 @@ const Auth = () => {
     }
   };
 
-  const handleFarcasterSignIn = async (response: any) => {
+  const handleFarcasterAuth = async () => {
     try {
       setLoading(true);
-      // First verify the signature with Farcaster
-      const verifyEndpoint = `https://api.farcaster.xyz/v2/auth/verify`;
-      const verifyResponse = await fetch(verifyEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: response.message, signature: response.signature }),
+      
+      // In a production environment, we would implement the actual Farcaster authentication
+      // For now, we'll just show a toast explaining that it's not available in the preview
+      
+      toast({
+        title: 'Farcaster Authentication',
+        description: 'This feature will be available in production. Currently implementing a simplified version for development.',
       });
-
-      if (!verifyResponse.ok) {
-        throw new Error('Failed to verify Farcaster signature');
-      }
-
-      const { fid, username, pfp } = await verifyResponse.json();
-
-      // Now create or update the farcaster user in our database
-      const { data: farcasterUser, error: farcasterError } = await supabase
-        .from('farcaster_users')
-        .upsert({
-          fid,
-          username,
-          avatar_url: pfp,
-          connected_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (farcasterError) throw farcasterError;
-
-      // Navigate to home after successful authentication
-      navigate('/');
-
+      
+      // Simulate a delay to make the UX feel natural
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
+      
     } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: 'Failed to authenticate with Farcaster',
         variant: 'destructive',
       });
-    } finally {
       setLoading(false);
     }
-  };
-
-  // Define the Farcaster auth configuration
-  const farcasterConfig = {
-    relay: 'https://relay.farcaster.xyz',
-    domain: window.location.host,
-    siweUri: window.location.origin,
   };
 
   return (
@@ -141,21 +112,14 @@ const Auth = () => {
               <span className="bg-vent-card px-2 text-gray-400">Or continue with</span>
             </div>
           </div>
-          <AuthKitProvider config={farcasterConfig}>
-            <Button 
-              onClick={() => {
-                console.log("Farcaster auth requested");
-                toast({
-                  title: "Farcaster Auth",
-                  description: "Farcaster authentication is currently disabled in the browser preview due to compatibility issues. Please implement in a production environment.",
-                });
-              }}
-              variant="outline"
-              className="w-full"
-            >
-              Connect with Farcaster
-            </Button>
-          </AuthKitProvider>
+          <Button 
+            onClick={handleFarcasterAuth}
+            disabled={loading}
+            variant="outline"
+            className="w-full"
+          >
+            Connect with Farcaster
+          </Button>
         </div>
       </div>
     </div>
