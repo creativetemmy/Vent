@@ -14,65 +14,68 @@ import NotFound from "./pages/NotFound";
 import Splash from "./pages/Splash";
 import Auth from "./pages/Auth";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading } = useAuth();
-  
-  if (loading) return <div>Loading...</div>;
-  if (!session) return <Navigate to="/auth" />;
-  
-  return <>{children}</>;
-};
-
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/splash" element={<Splash />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/vent-now" 
-              element={
-                <ProtectedRoute>
-                  <VentNow />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/vent/:id" 
-              element={
-                <ProtectedRoute>
-                  <VentDetails />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+// Move ProtectedRoute inside the App component to ensure AuthProvider is available
+const App = () => {
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { session, loading } = useAuth();
+    
+    if (loading) return <div>Loading...</div>;
+    if (!session) return <Navigate to="/auth" />;
+    
+    return <>{children}</>;
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/splash" element={<Splash />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/vent-now" 
+                element={
+                  <ProtectedRoute>
+                    <VentNow />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/vent/:id" 
+                element={
+                  <ProtectedRoute>
+                    <VentDetails />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
