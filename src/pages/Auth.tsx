@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { SignInButton, AuthKitProvider } from '@farcaster/auth-kit';
+import '@farcaster/auth-kit/styles.css';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -89,6 +90,13 @@ const Auth = () => {
     }
   };
 
+  // Define the Farcaster auth configuration
+  const farcasterConfig = {
+    relay: 'https://relay.farcaster.xyz',
+    domain: window.location.host,
+    siweUri: window.location.origin,
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-vent-bg">
       <div className="w-full max-w-md p-6 bg-vent-card rounded-lg shadow-xl">
@@ -133,8 +141,8 @@ const Auth = () => {
               <span className="bg-vent-card px-2 text-gray-400">Or continue with</span>
             </div>
           </div>
-          <AuthKitProvider>
-            <SignInButton 
+          <AuthKitProvider config={farcasterConfig}>
+            <SignInButton
               onSuccess={handleFarcasterSignIn}
               onError={(error) => {
                 toast({
