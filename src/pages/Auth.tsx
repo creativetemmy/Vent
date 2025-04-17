@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { SignInButton, AuthKitProvider } from '@farcaster/auth-kit';
+import { AuthKitProvider } from '@farcaster/auth-kit';
 import '@farcaster/auth-kit/styles.css';
 
 const Auth = () => {
@@ -142,18 +142,19 @@ const Auth = () => {
             </div>
           </div>
           <AuthKitProvider config={farcasterConfig}>
-            <SignInButton
-              onSuccess={handleFarcasterSignIn}
-              onError={(error) => {
+            <Button 
+              onClick={() => {
+                console.log("Farcaster auth requested");
                 toast({
-                  title: 'Error',
-                  description: error.message,
-                  variant: 'destructive',
+                  title: "Farcaster Auth",
+                  description: "Farcaster authentication is currently disabled in the browser preview due to compatibility issues. Please implement in a production environment.",
                 });
               }}
-              text="Connect with Farcaster"
               variant="outline"
-            />
+              className="w-full"
+            >
+              Connect with Farcaster
+            </Button>
           </AuthKitProvider>
         </div>
       </div>
