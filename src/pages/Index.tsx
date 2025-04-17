@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Tabs from '@/components/Tabs';
 import Feed from '@/components/Feed';
 import Footer from '@/components/Footer';
+import { FarcasterConnect } from '@/components/FarcasterConnect';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('top');
@@ -18,6 +19,7 @@ const Index = () => {
       </main>
       
       <Footer />
+      <FarcasterConnect />
     </div>
   );
 };
