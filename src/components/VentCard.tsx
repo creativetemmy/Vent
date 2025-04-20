@@ -8,7 +8,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface VentCardProps {
-  vent: Tables<'vents'>;
+  vent: Tables<'vents'> & { txHash?: string }; // Add optional txHash property
 }
 
 const VOTE_COST = 10;

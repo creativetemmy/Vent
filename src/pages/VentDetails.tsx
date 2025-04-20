@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Share, ThumbsUp, ThumbsDown, MessageSquare, Check, Star } from 'lucide-react';
@@ -60,7 +59,11 @@ const VentDetails: React.FC = () => {
         }
       )
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    
+    // Fix: Return cleanup function directly without wrapping in another function
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id]);
 
   // Fetch the logged-in user's points for reply button logic
@@ -238,4 +241,4 @@ const VentDetails: React.FC = () => {
 
 export default VentDetails;
 
-// Note: This file is now 204+ lines long. You should consider refactoring it into smaller files for maintainability.
+// Note: This file is now 242 lines long. You should consider refactoring it into smaller files for maintainability.

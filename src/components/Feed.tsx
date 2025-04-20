@@ -4,8 +4,11 @@ import VentCard from './VentCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 
+// Define a custom type that extends the Supabase vent type with optional txHash
+type VentWithTxHash = Tables<'vents'> & { txHash?: string };
+
 const Feed: React.FC = () => {
-  const [vents, setVents] = useState<Tables<'vents'>[]>([]);
+  const [vents, setVents] = useState<VentWithTxHash[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch all top-level vents (parent_id is null)
@@ -29,7 +32,7 @@ const Feed: React.FC = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'vents' },
         (payload) => {
-          const newVent = payload.new as Tables<'vents'>;
+          const newVent = payload.new as VentWithTxHash;
           // Only push if it's a top-level vent
           if (!newVent.parent_id) {
             setVents((prev) => [newVent, ...prev]);
