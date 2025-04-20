@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import VentHeader from '@/components/VentNow/VentHeader';
 import ContentInput from '@/components/VentNow/ContentInput';
@@ -8,6 +7,9 @@ import LiveVentPreview from '@/components/VentNow/LiveVentPreview';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Wallet, Star } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
+import { uploadToIPFS } from '@/utils/ipfs';
+import { hashContent } from '@/utils/hash';
 
 const MAX_CHAR_COUNT = 280;
 const VENT_COST = 20;
@@ -19,6 +21,7 @@ const VentNow: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [evidence, setEvidence] = useState<string | null>(null);
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [userPoints, setUserPoints] = useState(30); // Replace with auth
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,14 +55,16 @@ const VentNow: React.FC = () => {
       const reader = new FileReader();
       reader.onload = () => setEvidence(reader.result as string);
       reader.readAsDataURL(file);
+      setEvidenceFile(file);
     }
   };
   const removeEvidence = () => {
     setEvidence(null);
+    setEvidenceFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Submit mock - replace with real API
+  // Submit real function with Optimism and IPFS
   const handleSubmit = async () => {
     if (userPoints < VENT_COST) {
       toast({
@@ -70,8 +75,35 @@ const VentNow: React.FC = () => {
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
-      // Deduct points
+
+    let ipfsCid = null;
+    let txHash = null;
+    try {
+      // Hash the content
+      const contentHash = await hashContent(content);
+
+      // Upload evidence to IPFS via Pinata if there is a file
+      if (evidenceFile) {
+        ipfsCid = await uploadToIPFS(evidenceFile);
+      }
+
+      // Here, you would submit a transaction to Optimism and get a txHash.
+      // We'll mock this for now; replace with actual onchain code if needed.
+      txHash = "0x" + Math.random().toString(16).slice(2).padEnd(64, "0"); // Mock tx hash
+
+      // Store to Supabase
+      const { error } = await supabase.from('vents').insert([{
+        user_id: MOCK_USER_ID,
+        content,
+        content_hash: contentHash,
+        hashtags: tags.filter(t => t.startsWith('#')),
+        mentions: tags.filter(t => t.startsWith('@')),
+        evidence: ipfsCid ? `ipfs://${ipfsCid}` : null,
+        ipfs_cid: ipfsCid,
+        tx_hash: txHash,
+      }]);
+      if (error) throw new Error(error.message);
+
       setUserPoints(prevPts => {
         const newPoints = prevPts - VENT_COST;
         toast({
@@ -81,11 +113,20 @@ const VentNow: React.FC = () => {
         });
         return newPoints;
       });
+
       setContent("");
       setTags([]);
       setEvidence(null);
+      setEvidenceFile(null);
+    } catch (err: any) {
+      toast({
+        title: "Submission Error",
+        description: err.message || "Failed to post your vent.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 900);
+    }
   };
 
   const isOverCharLimit = content.length > MAX_CHAR_COUNT;
@@ -95,7 +136,7 @@ const VentNow: React.FC = () => {
     <div className="min-h-screen bg-vent-bg flex flex-col font-sans">
       <VentHeader />
       <main className="flex-1 max-w-lg mx-auto w-full pt-[calc(56px+1rem)] pb-8 px-4">
-        <h1 className="text-header text-white text-center font-bold mb-6 mt-4" style={{ marginBottom: 24 }}>Share Your Web3 Experience</h1>
+        <h1 className="text-header text-white text-center font-bold mb-6 mt-4" style={{ marginBottom: 24, fontFamily: "Inter", fontSize: 20 }}>Share Your Web3 Experience</h1>
         <form className="w-full max-w-[343px] mx-auto flex flex-col gap-6" style={{ gap: 24 }}>
           <ContentInput
             content={content}

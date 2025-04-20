@@ -39,27 +39,66 @@ export type Database = {
         }
         Relationships: []
       }
+      points_history: {
+        Row: {
+          action: string
+          created_at: string | null
+          description: string | null
+          id: string
+          points: number
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points: number
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points?: number
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
           email: string | null
+          ens_name: string | null
           id: string
+          is_verified: boolean | null
           points: number | null
           updated_at: string | null
+          wallet_address: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
+          ens_name?: string | null
           id: string
+          is_verified?: boolean | null
           points?: number | null
           updated_at?: string | null
+          wallet_address?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
+          ens_name?: string | null
           id?: string
+          is_verified?: boolean | null
           points?: number | null
           updated_at?: string | null
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -98,37 +137,46 @@ export type Database = {
       vents: {
         Row: {
           content: string
+          content_hash: string | null
           created_at: string | null
           downvotes: number | null
           evidence: string | null
           hashtags: string[] | null
           id: string
+          ipfs_cid: string | null
           mentions: string[] | null
           parent_id: string | null
+          tx_hash: string | null
           upvotes: number | null
           user_id: string
         }
         Insert: {
           content: string
+          content_hash?: string | null
           created_at?: string | null
           downvotes?: number | null
           evidence?: string | null
           hashtags?: string[] | null
           id?: string
+          ipfs_cid?: string | null
           mentions?: string[] | null
           parent_id?: string | null
+          tx_hash?: string | null
           upvotes?: number | null
           user_id: string
         }
         Update: {
           content?: string
+          content_hash?: string | null
           created_at?: string | null
           downvotes?: number | null
           evidence?: string | null
           hashtags?: string[] | null
           id?: string
+          ipfs_cid?: string | null
           mentions?: string[] | null
           parent_id?: string | null
+          tx_hash?: string | null
           upvotes?: number | null
           user_id?: string
         }
@@ -141,6 +189,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      verified_projects: {
+        Row: {
+          created_at: string | null
+          ens_name: string
+          id: string
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          ens_name: string
+          id?: string
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          ens_name?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {

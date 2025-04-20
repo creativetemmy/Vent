@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +8,7 @@ import VentDetailsHeader from './VentDetailsHeader';
 import VentMain from './VentMain';
 import CounterVentList from './CounterVentList';
 import CounterVentForm from './CounterVentForm';
+import { getIPFSUrl } from '@/utils/ipfs';
 
 const COUNTER_VENT_COST = 20;
 
@@ -24,11 +24,9 @@ const VentDetails: React.FC = () => {
   const [isPostingReply, setIsPostingReply] = useState(false);
   const [userPoints, setUserPoints] = useState<number | null>(null);
 
-  // Fetch vent and replies (counter-vents)
   useEffect(() => {
     async function fetchVentAndReplies() {
       if (!id) return;
-      // Fetch the main vent
       const { data: ventData } = await supabase
         .from('vents')
         .select('*')
@@ -36,7 +34,6 @@ const VentDetails: React.FC = () => {
         .maybeSingle();
       setVent(ventData);
 
-      // Fetch replies (counter-vents)
       const { data: replies } = await supabase
         .from('vents')
         .select('*')
@@ -47,7 +44,6 @@ const VentDetails: React.FC = () => {
     fetchVentAndReplies();
   }, [id, isPostingReply]);
 
-  // Listen for new counter-vents in realtime
   useEffect(() => {
     if (!id) return;
     const channel = supabase
@@ -63,13 +59,11 @@ const VentDetails: React.FC = () => {
       )
       .subscribe();
 
-    // Return cleanup function directly
     return () => {
       supabase.removeChannel(channel);
     };
   }, [id]);
 
-  // Fetch the logged-in user's points for reply button logic
   useEffect(() => {
     if (!session?.user) return;
     async function fetchPoints() {
@@ -91,7 +85,6 @@ const VentDetails: React.FC = () => {
     }
     setIsPostingReply(true);
 
-    // Add child vent (reply)
     const { error: replyError } = await supabase.from('vents').insert([{
       user_id: session.user.id,
       content: counterReply,
@@ -103,7 +96,6 @@ const VentDetails: React.FC = () => {
       return;
     }
 
-    // Deduct 20 points
     const { error: pointError } = await supabase
       .from('profiles')
       .update({ points: (userPoints ?? 0) - COUNTER_VENT_COST })
@@ -118,6 +110,57 @@ const VentDetails: React.FC = () => {
     setIsPostingReply(false);
   };
 
+  function renderEvidence(ventData: any) {
+    if (!ventData) return null;
+    if (ventData.ipfs_cid) {
+      const cid = ventData.ipfs_cid;
+      const url = getIPFSUrl(cid);
+      return (
+        <div className="mb-3">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-twitter underline font-semibold"
+            aria-label="IPFS CID evidence"
+          >
+            Evidence CID: {cid.slice(0, 8)}...{cid.slice(-6)}
+          </a>
+        </div>
+      );
+    }
+    if (ventData.evidence) {
+      return (
+        <div className="mb-3">
+          <img
+            src={ventData.evidence}
+            alt="Evidence image"
+            className="w-full h-auto max-h-[200px] object-cover rounded border"
+          />
+        </div>
+      );
+    }
+    return null;
+  }
+
+  function renderEtherscan(ventData: any) {
+    if (ventData?.tx_hash) {
+      return (
+        <div className="mb-3">
+          <a
+            href={`https://optimistic.etherscan.io/tx/${ventData.tx_hash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-yellow-400 underline"
+          >
+            View on Etherscan
+          </a>
+        </div>
+      );
+    }
+    return null;
+  }
+
   if (!vent) {
     return (
       <div className="min-h-screen bg-vent-bg flex flex-col items-center justify-center">
@@ -129,16 +172,52 @@ const VentDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-vent-bg flex flex-col">
-      {/* Header */}
       <VentDetailsHeader onBack={() => navigate(-1)} />
 
-      {/* Content */}
       <main className="flex-1 max-w-lg mx-auto w-full pt-[calc(56px+1rem)] pb-[72px] px-4">
         <ScrollArea className="w-full max-w-[343px] mx-auto h-[calc(100vh-56px-64px-32px)]">
-          <VentMain vent={vent} />
+          <div className="w-full max-w-[343px] bg-[#4A4A4A] rounded-lg p-4 mb-4">
+            <div className="flex justify-between items-start mb-2">
+              <span className="font-bold text-base text-white" style={{ fontFamily: "Inter" }}>
+                {vent.user_id.slice(0, 6)}...{vent.user_id.slice(-4)}
+              </span>
+              <span className="text-sm text-vent-muted">
+                {vent.created_at ? new Date(vent.created_at).toLocaleString() : ""}
+              </span>
+            </div>
+            <p className="text-base mb-3 text-white" style={{ fontFamily: "Inter" }}>{vent.content}</p>
+            {renderEvidence(vent)}
+            {renderEtherscan(vent)}
+            <div className="flex flex-wrap gap-1 mb-3">
+              {(vent.hashtags ?? []).map((tag: string, index: number) => (
+                <span key={index} className="text-twitter text-sm cursor-pointer hover:underline" style={{ fontFamily: "Inter" }}>
+                  {tag}
+                </span>
+              ))}
+              {(vent.mentions ?? []).map((m: string, idx: number) => (
+                <span key={idx} className="text-twitter text-sm cursor-pointer hover:underline ml-1" style={{ fontFamily: "Inter" }}>
+                  {m}
+                </span>
+              ))}
+            </div>
+          </div>
           <div className="mb-4">
-            <h2 className="text-white text-lg font-semibold mb-3">Counter-Vents</h2>
-            <CounterVentList counterVents={counterVents} />
+            <h2 className="text-white text-lg font-semibold mb-3" style={{ fontFamily: "Inter" }}>Counter-Vents</h2>
+            {counterVents.map(cv => (
+              <div key={cv.id} className="w-full max-w-[343px] bg-[#333] rounded-lg p-4 mb-3">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="font-bold text-base text-white" style={{ fontFamily: "Inter" }}>
+                    {cv.user_id.slice(0, 6)}...{cv.user_id.slice(-4)}
+                  </span>
+                  <span className="text-sm text-vent-muted">
+                    {cv.created_at ? new Date(cv.created_at).toLocaleString() : ""}
+                  </span>
+                </div>
+                <p className="text-base mb-3 text-white" style={{ fontFamily: "Inter" }}>{cv.content}</p>
+                {renderEvidence(cv)}
+                {renderEtherscan(cv)}
+              </div>
+            ))}
             <CounterVentForm
               counterReply={counterReply}
               setCounterReply={setCounterReply}
@@ -155,5 +234,3 @@ const VentDetails: React.FC = () => {
 };
 
 export default VentDetails;
-
-// Note: This file is now refactored. You should consider further splitting files as functionality grows.
