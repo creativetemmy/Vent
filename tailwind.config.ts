@@ -19,6 +19,14 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ["Inter", "system-ui", "Arial", "sans-serif"],
+			},
+			fontSize: {
+				'header': '20px',
+				'body': '16px',
+				'meta': '14px',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -31,6 +39,8 @@ export default {
 				'secondary-foreground': 'hsl(var(--secondary-foreground))',
 				destructive: 'hsl(var(--destructive))',
 				'destructive-foreground': 'hsl(var(--destructive-foreground))',
+				success: '#24c07b',
+				'success-foreground': '#fff',
 				muted: 'hsl(var(--muted))',
 				'muted-foreground': 'hsl(var(--muted-foreground))',
 				accent: 'hsl(var(--accent))',
@@ -43,6 +53,7 @@ export default {
 				'vent-bg': '#121212',
 				'vent-card': '#2A2A2A',
 				'vent-muted': '#A0A0A0',
+				'vent-contrast': '#fff',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -56,6 +67,9 @@ export default {
 			},
 			width: {
 				'feed': '343px',
+			},
+			gap: {
+				'24': '24px',
 			},
 			keyframes: {
 				'accordion-down': {

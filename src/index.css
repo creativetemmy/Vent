@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
 @layer base {
   :root {
     --background: 0 0% 7%;
@@ -39,11 +41,17 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border font-sans;
   }
   body {
-    @apply bg-vent-bg text-foreground;
+    @apply bg-vent-bg text-vent-contrast text-body;
     font-size: 16px;
+  }
+  h1, h2, h3, h4 {
+    @apply font-bold text-header;
+  }
+  .meta {
+    @apply text-meta text-vent-muted;
   }
   button, a {
     @apply min-h-[48px] min-w-[48px] flex items-center justify-center;
@@ -54,19 +62,15 @@
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105 cursor-pointer;
   }
-  
   .pulse {
     @apply animate-pulse;
   }
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
-/* Hide scrollbar for IE, Edge and Firefox */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
