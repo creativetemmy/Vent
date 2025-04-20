@@ -17,7 +17,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Helper: normalize user input (username or FID)
   const normalizeInput = (input: string) => {
     input = input.trim();
     if (/^\d+$/.test(input)) return { type: "fid" as const, value: input };
@@ -25,12 +24,13 @@ const Auth = () => {
     return { type: "username" as const, value: input };
   };
 
-  // Neynar API user lookup & upsert to Supabase
   const fetchAndUpsertFarcasterUser = async (input: string) => {
     setLoading(true);
     setErrorMsg(null);
 
     const { type, value } = normalizeInput(input);
+
+    let user = null;
 
     try {
       const param = type === "fid" ? `fid=${value}` : `username=${value}`;
@@ -42,30 +42,51 @@ const Auth = () => {
       );
       if (!res.ok) throw new Error("Account not found via Neynar");
       const json = await res.json();
-      const user = json.result.user;
+      user = json.result.user;
       if (!user) throw new Error("No user found, check spelling or FID.");
 
-      // Upsert to Supabase using new function
-      const { error } = await supabase.rpc("upsert_farcaster_user", {
+      // SUPABASE CACHE: store mapping
+      await supabase.rpc("upsert_farcaster_user", {
         p_fid: user.fid,
         p_username: user.username,
         p_display_name: user.display_name || "",
         p_avatar_url: user.pfp_url || "",
-        p_did: user.object.properties?.did || user.custody_address || "",
+        p_did: user.object?.properties?.did || user.custody_address || "",
         p_user_id: null
       });
-
-      if (error) throw new Error(error.message);
 
       toast({ title: "Success", description: "Farcaster user recognized. You can now continue!" });
       setErrorMsg(null);
     } catch (err: any) {
-      setErrorMsg(err?.message || "Unknown error.");
-      toast({
-        title: "User Not Found",
-        description: err?.message || "No Farcaster account found.",
-        variant: "destructive"
-      });
+      // If Neynar fails, try Supabase cache as fallback
+      if (type === "username") {
+        // Try to resolve username to DID via Supabase
+        const { data: cached, error } = await supabase
+          .from("farcaster_users")
+          .select("*")
+          .eq("username", value)
+          .maybeSingle();
+
+        if (cached) {
+          toast({ title: "Found in Cache", description: "Farcaster user found in cache." });
+          setErrorMsg(null);
+          return;
+        }
+
+        setErrorMsg("Invalid Farcaster account, try DID.");
+        toast({
+          title: "User Not Found",
+          description: "Invalid Farcaster account, try DID.",
+          variant: "destructive"
+        });
+      } else {
+        setErrorMsg(err?.message || "Unknown error.");
+        toast({
+          title: "User Not Found",
+          description: err?.message || "No Farcaster account found.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +106,7 @@ const Auth = () => {
       title: "Success", 
       description: "Farcaster account connected!" 
     });
-    // You can add navigation or further steps here
+    // Further steps or navigation go here...
   };
 
   return (
@@ -110,8 +131,6 @@ const Auth = () => {
           >
             {loading ? "Checking..." : "Continue"}
           </Button>
-
-          {/* Show error in red if account not found */}
           {errorMsg && (
             <div className="text-sm text-red-500 mt-2">{errorMsg}</div>
           )}

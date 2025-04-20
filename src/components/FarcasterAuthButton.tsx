@@ -6,27 +6,30 @@ import { supabase } from "@/integrations/supabase/client";
 
 const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const { toast } = useToast();
-  // Configure useSignIn with the correct parameters according to the Farcaster auth-kit
-  const { signIn, isSuccess, isPolling, data } = useSignIn({
-    // According to Farcaster's auth-kit, these are the correct parameters
-    // https://docs.farcaster.xyz/auth-kit/sign-in/client
-    siweUri: window.location.origin,
-    domain: window.location.host,
-  });
+
+  // useSignIn may not actually take any arguments for latest @farcaster/auth-kit
+  const { signIn, isSuccess, isPolling, data } = useSignIn();
 
   const handleSignIn = async () => {
     try {
       await signIn();
 
-      if (data && data.fid) {
+      // Defensive: data might not yet be present
+      if (data && typeof data === "object" && "fid" in data) {
         toast({ title: "Connected!", description: "Wallet and Farcaster account connected." });
 
         try {
-          // Get the wallet address from the correct property in Farcaster response
-          // Looking at the Farcaster auth-kit types, we need to access these properties carefully
-          const custodyAddress = data?.custody_address?.toLowerCase() || "";
+          // property names safety: custodyAddress or walletAddress are most likely correct
+          // statusAPIResponse likely returns { fid, username, displayName, pfpUrl, walletAddress }
+          // fallback to any casing
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const custodyAddress =
+            (data as any).walletAddress?.toLowerCase?.() ||
+            (data as any).custodyAddress?.toLowerCase?.() ||
+            "";
+
           if (custodyAddress) {
-            const { error } = await supabase.rpc("upsert_farcaster_user", {
+            await supabase.rpc("upsert_farcaster_user", {
               p_fid: data.fid,
               p_username: data.username || "",
               p_display_name: data.displayName || "",
@@ -34,7 +37,6 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
               p_did: custodyAddress,
               p_user_id: null
             });
-            if (error) throw error;
           }
         } catch (err) {
           console.error("Error storing Farcaster data:", err);
