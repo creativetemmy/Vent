@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { SignInButton } from '@farcaster/auth-kit';
+import '@farcaster/auth-kit/styles.css';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -41,31 +42,50 @@ const Auth = () => {
     }
   };
 
-  const handleFarcasterAuth = async () => {
+  const handleFarcasterSuccess = async (res: any) => {
     try {
       setLoading(true);
-      
-      // In a production environment, we would implement the actual Farcaster authentication
-      // For now, we'll just show a toast explaining that it's not available in the preview
-      
+
+      if (res?.fid) {
+        let { data, error } = await supabase
+          .from('farcaster_users')
+          .upsert({
+            fid: res.fid,
+            username: res.username,
+            avatar_url: res.pfp,
+            connected_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast({
+          title: "Welcome!",
+          description: `Logged in as ${res.username}`,
+        });
+        navigate('/');
+      } else {
+        throw new Error("Farcaster login failed");
+      }
+    } catch (error: any) {
       toast({
-        title: 'Farcaster Authentication',
-        description: 'This feature will be available in production. Currently implementing a simplified version for development.',
+        title: "Farcaster Login Error",
+        description: error.message || String(error),
+        variant: "destructive",
       });
-      
-      // Simulate a delay to make the UX feel natural
-      setTimeout(() => {
-        setLoading(false);
-      }, 500);
-      
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to authenticate with Farcaster',
-        variant: 'destructive',
-      });
+    } finally {
       setLoading(false);
     }
+  };
+
+  const handleFarcasterError = (error: any) => {
+    toast({
+      title: "Farcaster Login Error",
+      description: error?.message || String(error),
+      variant: "destructive",
+    });
+    setLoading(false);
   };
 
   return (
@@ -112,14 +132,15 @@ const Auth = () => {
               <span className="bg-vent-card px-2 text-gray-400">Or continue with</span>
             </div>
           </div>
-          <Button 
-            onClick={handleFarcasterAuth}
-            disabled={loading}
-            variant="outline"
-            className="w-full"
-          >
-            Connect with Farcaster
-          </Button>
+          <div className="w-full">
+            <SignInButton
+              onSuccess={handleFarcasterSuccess}
+              onError={handleFarcasterError}
+              className="w-full"
+            >
+              <span>Connect with Farcaster</span>
+            </SignInButton>
+          </div>
         </div>
       </div>
     </div>
