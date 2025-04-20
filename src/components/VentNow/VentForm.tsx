@@ -19,6 +19,7 @@ const VentForm: React.FC = () => {
   const [evidence, setEvidence] = useState<string | null>(null);
   const [userPoints, setUserPoints] = useState(30); // Mock user points, would come from auth
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -57,6 +58,20 @@ const VentForm: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setFileError("Evidence must be less than 5MB.");
+        toast({
+          title: "File Too Large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive",
+        });
+        // Reset the file input to prevent further actions
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+      setFileError(null);
       const reader = new FileReader();
       reader.onload = () => {
         setEvidence(reader.result as string);
@@ -130,6 +145,9 @@ const VentForm: React.FC = () => {
         fileInputRef={fileInputRef}
         onFileChange={handleFileChange}
       />
+      {fileError && (
+        <p className="text-red-500 text-sm text-center">{fileError}</p>
+      )}
       
       <TagInput
         tags={tags}

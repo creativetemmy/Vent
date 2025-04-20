@@ -1,1 +1,5 @@
+
 project_id = "gxqazwlpoxjnhhdflibz"
+
+[functions.reset_user_points]
+verify_jwt = false
