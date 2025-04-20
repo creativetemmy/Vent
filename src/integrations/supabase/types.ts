@@ -17,6 +17,8 @@ export type Database = {
           display_name: string | null
           fid: number
           id: string
+          last_reset: string | null
+          points: number | null
           user_id: string | null
           username: string
         }
@@ -27,6 +29,8 @@ export type Database = {
           display_name?: string | null
           fid: number
           id?: string
+          last_reset?: string | null
+          points?: number | null
           user_id?: string | null
           username: string
         }
@@ -37,6 +41,8 @@ export type Database = {
           display_name?: string | null
           fid?: number
           id?: string
+          last_reset?: string | null
+          points?: number | null
           user_id?: string | null
           username?: string
         }
