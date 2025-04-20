@@ -17,10 +17,10 @@ const Auth = () => {
   const normalizeInput = (input: string) => {
     input = input.trim();
     // If it's all numbers, treat as FID
-    if (/^\d+$/.test(input)) return { type: "fid", value: Number(input) };
+    if (/^\d+$/.test(input)) return { type: "fid" as const, value: Number(input) };
     // If it's an @username, remove the @
     if (input.startsWith("@")) input = input.slice(1);
-    return { type: "username", value: input.toLowerCase() };
+    return { type: "username" as const, value: input.toLowerCase() };
   };
 
   // Authenticate by Farcaster username or FID
@@ -37,7 +37,7 @@ const Auth = () => {
         const response = await supabase
           .from("farcaster_users")
           .select("*")
-          .eq("fid", inputNormalized.value)
+          .eq("fid", inputNormalized.value) // Value is number here
           .maybeSingle();
         
         farcasterUser = response.data;
@@ -47,7 +47,7 @@ const Auth = () => {
         const response = await supabase
           .from("farcaster_users")
           .select("*")
-          .ilike("username", inputNormalized.value)
+          .ilike("username", inputNormalized.value as string) // Value is string here
           .maybeSingle();
         
         farcasterUser = response.data;
