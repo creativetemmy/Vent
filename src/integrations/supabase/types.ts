@@ -44,21 +44,103 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          points: number | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id: string
+          points?: number | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
+          points?: number | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      user_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          user_id: string
+          vent_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          user_id: string
+          vent_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          vent_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_votes_vent_id_fkey"
+            columns: ["vent_id"]
+            isOneToOne: false
+            referencedRelation: "vents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vents: {
+        Row: {
+          content: string
+          created_at: string | null
+          downvotes: number | null
+          evidence: string | null
+          hashtags: string[] | null
+          id: string
+          mentions: string[] | null
+          parent_id: string | null
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          downvotes?: number | null
+          evidence?: string | null
+          hashtags?: string[] | null
+          id?: string
+          mentions?: string[] | null
+          parent_id?: string | null
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          downvotes?: number | null
+          evidence?: string | null
+          hashtags?: string[] | null
+          id?: string
+          mentions?: string[] | null
+          parent_id?: string | null
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vents_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "vents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
