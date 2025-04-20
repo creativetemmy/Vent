@@ -1,9 +1,8 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSignIn } from "@farcaster/auth-kit";
-import { supabase } from "@/integrations/supabase/client";
-import { LogIn } from "lucide-react";
+import { LogIn, AlertTriangle } from "lucide-react";
 
 type FarcasterAuthButtonProps = {
   onSuccess?: () => void;
@@ -17,6 +16,18 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 }) => {
   const { toast } = useToast();
   const { signIn, isPolling, isSuccess, data } = useSignIn({});
+
+  // Detect if MetaMask is installed
+  const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Detect window.ethereum as injected by MetaMask
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      setHasMetaMask(true);
+    } else {
+      setHasMetaMask(false);
+    }
+  }, []);
 
   const handleSignIn = async () => {
     try {
@@ -58,23 +69,39 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
   };
 
   return (
-    <button
-      type="button"
-      className={`${GRADIENT} w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-white font-semibold text-base shadow-lg hover:brightness-105 transition-all relative`}
-      style={{
-        minHeight: 48,
-        fontSize: 18,
-      }}
-      onClick={handleSignIn}
-      disabled={isPolling}
-      aria-label="Sign in with Farcaster"
-    >
-      <LogIn className="mr-2 h-5 w-5 opacity-90" />
-      {isPolling
-        ? "Connecting..."
-        : "Sign In with Farcaster Wallet"}
-    </button>
+    <>
+      {/* If MetaMask is not installed, show a prominent warning */}
+      {!hasMetaMask ? (
+        <div className="w-full flex items-center gap-2 border border-red-500 bg-red-100/80 text-red-700 px-4 py-3 rounded-lg mb-2 font-medium text-base">
+          <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
+          Install <a
+            href="https://metamask.io/download.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-bold hover:text-red-600 ml-1 mr-1"
+          >MetaMask</a> to enable wallet sign-in.
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={`${GRADIENT} w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-white font-semibold text-base shadow-lg hover:brightness-105 transition-all relative`}
+          style={{
+            minHeight: 48,
+            fontSize: 18,
+          }}
+          onClick={handleSignIn}
+          disabled={isPolling}
+          aria-label="Sign in with Farcaster"
+        >
+          <LogIn className="mr-2 h-5 w-5 opacity-90" />
+          {isPolling
+            ? "Connecting..."
+            : "Sign In with Farcaster Wallet"}
+        </button>
+      )}
+    </>
   );
 };
 
 export default FarcasterAuthButton;
+
