@@ -102,9 +102,9 @@ const Auth = () => {
   };
 
   const handleFarcasterAuthSuccess = () => {
-    toast({ 
-      title: "Success", 
-      description: "Farcaster account connected!" 
+    toast({
+      title: "Success",
+      description: "Farcaster account connected!"
     });
     // Further steps or navigation go here...
   };
@@ -114,6 +114,7 @@ const Auth = () => {
       <div className="w-full max-w-md p-6 bg-vent-card rounded-lg shadow-xl">
         <h1 className="text-2xl font-bold text-white mb-6 text-center">Sign In with Farcaster</h1>
         <div className="space-y-4">
+
           {/* Main: Farcaster Wallet Auth */}
           <div className="flex flex-col gap-2 items-center">
             <FarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
@@ -158,7 +159,7 @@ const Auth = () => {
           </div>
         </div>
         <div className="mt-6 text-sm text-center text-vent-muted">
-          Only Farcaster-enabled accounts can log in.<br/>
+          Only Farcaster-enabled accounts can log in.<br />
           Powered by Neynar API &amp; @farcaster/auth-kit
         </div>
       </div>

@@ -1,33 +1,37 @@
 
 import React from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { SignInButton, useSignIn } from "@farcaster/auth-kit";
+import { useSignIn } from "@farcaster/auth-kit";
 import { supabase } from "@/integrations/supabase/client";
+import { LogIn } from "lucide-react";
 
-const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
+type FarcasterAuthButtonProps = {
+  onSuccess?: () => void;
+};
+
+const GRADIENT =
+  "bg-gradient-to-r from-[#1DA1F2] to-[#7B61FF]";
+
+const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
+  onSuccess,
+}) => {
   const { toast } = useToast();
-
-  // Pass an empty object as the argument to useSignIn
-  const { signIn, isSuccess, isPolling, data } = useSignIn({});
+  const { signIn, isPolling, isSuccess, data } = useSignIn({});
 
   const handleSignIn = async () => {
     try {
       await signIn();
-
-      // Defensive: data might not yet be present
       if (data && typeof data === "object" && "fid" in data) {
-        toast({ title: "Connected!", description: "Wallet and Farcaster account connected." });
-
+        toast({
+          title: "Connected!",
+          description: "Wallet and Farcaster account connected.",
+        });
         try {
-          // property names safety: custodyAddress or walletAddress are most likely correct
-          // statusAPIResponse likely returns { fid, username, displayName, pfpUrl, walletAddress }
-          // fallback to any casing
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // Standardize address field casing and upsert to Supabase
           const custodyAddress =
             (data as any).walletAddress?.toLowerCase?.() ||
             (data as any).custodyAddress?.toLowerCase?.() ||
             "";
-
           if (custodyAddress) {
             await supabase.rpc("upsert_farcaster_user", {
               p_fid: data.fid,
@@ -35,13 +39,12 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
               p_display_name: data.displayName || "",
               p_avatar_url: data.pfpUrl || "",
               p_did: custodyAddress,
-              p_user_id: null
+              p_user_id: null,
             });
           }
         } catch (err) {
           console.error("Error storing Farcaster data:", err);
         }
-
         if (onSuccess) onSuccess();
       }
     } catch (err: any) {
@@ -49,15 +52,28 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
       toast({
         title: "Farcaster Sign-In Error",
         description: err?.message || "Unknown error.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <SignInButton
-      onSuccess={handleSignIn}
-    />
+    <button
+      type="button"
+      className={`${GRADIENT} w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-white font-semibold text-base shadow-lg hover:brightness-105 transition-all relative`}
+      style={{
+        minHeight: 48,
+        fontSize: 18,
+      }}
+      onClick={handleSignIn}
+      disabled={isPolling}
+      aria-label="Sign in with Farcaster"
+    >
+      <LogIn className="mr-2 h-5 w-5 opacity-90" />
+      {isPolling
+        ? "Connecting..."
+        : "Sign In with Farcaster Wallet"}
+    </button>
   );
 };
 
