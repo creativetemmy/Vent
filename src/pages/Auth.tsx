@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import '@farcaster/auth-kit/styles.css';
 
+// Ensure we're using a simplified version of Farcaster auth that works in the browser
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
