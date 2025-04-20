@@ -28,14 +28,28 @@ const VentNow: React.FC = () => {
 
   // Handlers
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value);
+
+  const isValidTag = (tag: string) => {
+    if (!tag.trim() || tags.includes(tag)) return false;
+    return /^([#@][a-zA-Z0-9_]{1,30})$/.test(tag.trim());
+  };
+
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value);
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
       let newTag = tagInput.trim();
       if (!newTag.startsWith('#') && !newTag.startsWith('@')) newTag = '#' + newTag;
-      if (!tags.includes(newTag)) setTags([...tags, newTag]);
-      setTagInput('');
+      if (isValidTag(newTag)) {
+        setTags([...tags, newTag]);
+        setTagInput('');
+      } else {
+        toast({
+          title: "Invalid Tag",
+          description: "Tags must be #word or @word, no spaces or special characters, and cannot be duplicates.",
+          variant: "destructive",
+        });
+      }
     }
   };
   const removeTag = (tagToRemove: string) => setTags(tags.filter(tag => tag !== tagToRemove));
