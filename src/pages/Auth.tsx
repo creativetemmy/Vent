@@ -27,59 +27,84 @@ const Auth = () => {
   const handleFarcasterLogin = async () => {
     setLoading(true);
     const inputNormalized = normalizeInput(farcasterInput);
-    let { data: farcasterUser, error } = 
-      inputNormalized.type === "fid"
-        ? await supabase
-            .from("farcaster_users")
-            .select("*")
-            .eq("fid", inputNormalized.value)
-            .maybeSingle()
-        : await supabase
-            .from("farcaster_users")
-            .select("*")
-            .ilike("username", inputNormalized.value)
-            .maybeSingle();
+    
+    try {
+      let farcasterUser;
+      let error;
+      
+      if (inputNormalized.type === "fid") {
+        // If the input is a FID (number), use eq with the number
+        const response = await supabase
+          .from("farcaster_users")
+          .select("*")
+          .eq("fid", inputNormalized.value)
+          .maybeSingle();
+        
+        farcasterUser = response.data;
+        error = response.error;
+      } else {
+        // If the input is a username (string), use ilike with the string
+        const response = await supabase
+          .from("farcaster_users")
+          .select("*")
+          .ilike("username", inputNormalized.value)
+          .maybeSingle();
+        
+        farcasterUser = response.data;
+        error = response.error;
+      }
 
-    if (error) {
+      if (error) {
+        setLoading(false);
+        toast({
+          title: "Error",
+          description: "Could not query Farcaster users.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!farcasterUser) {
+        setLoading(false);
+        toast({
+          title: "Not Found",
+          description: "No Farcaster account found with this username or FID.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!farcasterUser.user_id) {
+        setLoading(false);
+        toast({
+          title: "Not Linked",
+          description: "This Farcaster account is not yet linked. Please connect your Farcaster account first.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // At this point, Farcaster account is linked. Try to sign in as that user.
+      // We'll use Supabase's "sign in with magic link" for the associated user (user_id)
+      // Since we do not have password flow, we need a custom solution.
+
+      // For this demo, we'll instruct the user if not auto-login is possible (Supabase does not allow direct user impersonation from client).
+      setLoading(false);
+      toast({
+        title: "Success",
+        description: "Farcaster login found! However, auto-login as a linked user is not possible with Supabase client-only. Please contact support for custom login flow.",
+      });
+      // Optionally, you could redirect or trigger a backend edge function for custom JWT issuance for the found user_id.
+      // For now, just stay on the page.
+    } catch (err) {
       setLoading(false);
       toast({
         title: "Error",
-        description: "Could not query Farcaster users.",
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
-      return;
+      console.error("Login error:", err);
     }
-    if (!farcasterUser) {
-      setLoading(false);
-      toast({
-        title: "Not Found",
-        description: "No Farcaster account found with this username or FID.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!farcasterUser.user_id) {
-      setLoading(false);
-      toast({
-        title: "Not Linked",
-        description: "This Farcaster account is not yet linked. Please connect your Farcaster account first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // At this point, Farcaster account is linked. Try to sign in as that user.
-    // We'll use Supabase's "sign in with magic link" for the associated user (user_id)
-    // Since we do not have password flow, we need a custom solution.
-
-    // For this demo, we'll instruct the user if not auto-login is possible (Supabase does not allow direct user impersonation from client).
-    setLoading(false);
-    toast({
-      title: "Success",
-      description: "Farcaster login found! However, auto-login as a linked user is not possible with Supabase client-only. Please contact support for custom login flow.",
-    });
-    // Optionally, you could redirect or trigger a backend edge function for custom JWT issuance for the found user_id.
-    // For now, just stay on the page.
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -120,4 +145,3 @@ const Auth = () => {
 };
 
 export default Auth;
-
