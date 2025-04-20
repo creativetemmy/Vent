@@ -77,7 +77,7 @@ const VentNow: React.FC = () => {
         toast({
           title: "Vent Posted!",
           description: `Your vent was posted! Points left: ${newPoints}`,
-          variant: "success"
+          variant: "default"
         });
         return newPoints;
       });
