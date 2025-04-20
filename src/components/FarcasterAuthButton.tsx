@@ -12,14 +12,14 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
 
   const handleSignIn = async () => {
     try {
-      await signIn();
+      await signIn({ domain: window.location.host, siweUri: window.location.origin });
       
       if (data && data.fid) {
         toast({ title: "Connected!", description: "Wallet and Farcaster account connected." });
 
         // Optionally upsert DID or connect account in Supabase here
         try {
-          const did = data.custody_address?.toLowerCase() || "";
+          const did = data.walletAddress?.toLowerCase() || "";
           
           if (did) {
             // Use the upsert function to store the DID
@@ -27,7 +27,7 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
               p_fid: data.fid,
               p_username: data.username || "",
               p_display_name: data.displayName || "",
-              p_avatar_url: data.pfp_url || "",
+              p_avatar_url: data.pfpUrl || "",
               p_did: did,
               p_user_id: null // Link to auth user later if needed
             });
