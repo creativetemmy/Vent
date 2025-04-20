@@ -14,7 +14,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ userId, createdAt, ensVerified 
       {userId.slice(0, 6)}...{userId.slice(-4)}
     </span>
     {ensVerified &&
-      <BadgeCheck className="h-4 w-4 text-yellow-400" title="Verified ENS Project" />
+      <BadgeCheck className="h-4 w-4 text-yellow-400" aria-label="Verified ENS Project" />
     }
     <Wallet className="h-4 w-4 text-twitter" />
     <span className="text-sm text-vent-muted ml-2" style={{ fontFamily: "Inter" }}>

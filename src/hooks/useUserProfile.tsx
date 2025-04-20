@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
@@ -18,6 +17,7 @@ export interface PointsHistoryItem {
   action: string;
   points: number;
   content: string;
+  tx_hash?: string;
 }
 
 export interface UserProfile {
@@ -51,14 +51,12 @@ const useUserProfile = () => {
   });
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         setSession(newSession);
       }
     );
 
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
     });
@@ -74,10 +72,6 @@ const useUserProfile = () => {
       }
       
       try {
-        // For now, we'll use mock data but structure it as if it came from Supabase
-        // In a real implementation, you would fetch this data from your database
-        
-        // Mock data with the user's actual email
         const userData = {
           username: session.user.email ? `@${session.user.email.split('@')[0]}.eth` : '@user.eth',
           walletAddress: `0x${session.user.id.substring(0, 3)}...${session.user.id.substring(session.user.id.length - 3)}`,
@@ -121,7 +115,8 @@ const useUserProfile = () => {
               date: 'Apr 10, 2025',
               action: 'Vented',
               points: -20,
-              content: 'Uniswap fees ate my ETH!'
+              content: 'Uniswap fees ate my ETH!',
+              tx_hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
             },
             {
               id: '2',
