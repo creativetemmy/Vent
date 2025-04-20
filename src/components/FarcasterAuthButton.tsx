@@ -6,8 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const { toast } = useToast();
-  // useSignIn takes no arguments, use as default
-  const { signIn, isSuccess, isPolling, data } = useSignIn();
+  // Need to pass required configuration to useSignIn
+  const { signIn, isSuccess, isPolling, data } = useSignIn({
+    domain: window.location.host,
+    siweUri: window.location.origin
+  });
 
   const handleSignIn = async () => {
     try {
@@ -17,8 +20,8 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
         toast({ title: "Connected!", description: "Wallet and Farcaster account connected." });
 
         try {
-          // Use custody_address as the user's wallet/DID
-          const custodyAddress = data.custody_address?.toLowerCase() || "";
+          // Access the correct property for wallet address
+          const custodyAddress = data.walletAddress?.toLowerCase() || data.did?.toLowerCase() || "";
           if (custodyAddress) {
             const { error } = await supabase.rpc("upsert_farcaster_user", {
               p_fid: data.fid,
