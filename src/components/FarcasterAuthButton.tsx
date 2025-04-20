@@ -8,18 +8,24 @@ const FARCASTER_CLIENT_ID = "farcaster.xyz"; // Adjust if needed
 
 const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const { toast } = useToast();
-  const { signIn, isSuccess, isPolling, data } = useSignIn();
+  // Fix error 1: Pass required config parameter to useSignIn
+  const { signIn, isSuccess, isPolling, data } = useSignIn({ 
+    domain: window.location.host,
+    siweUri: window.location.origin 
+  });
 
   const handleSignIn = async () => {
     try {
-      await signIn({ domain: window.location.host, siweUri: window.location.origin });
+      // Fix error 2: Don't pass arguments to signIn() as they're already in useSignIn
+      await signIn();
       
       if (data && data.fid) {
         toast({ title: "Connected!", description: "Wallet and Farcaster account connected." });
 
-        // Optionally upsert DID or connect account in Supabase here
+        // Fix error 3: Use the correct property name from StatusAPIResponse
         try {
-          const did = data.walletAddress?.toLowerCase() || "";
+          // The property is "did" according to the Farcaster API, not walletAddress
+          const did = data.did?.toLowerCase() || "";
           
           if (did) {
             // Use the upsert function to store the DID
@@ -41,6 +47,7 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
         if (onSuccess) onSuccess();
       }
     } catch (err: any) {
+      console.error("Farcaster auth error:", err);
       toast({
         title: "Farcaster Sign-In Error",
         description: err?.message || "Unknown error.",
