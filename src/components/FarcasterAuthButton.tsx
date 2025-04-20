@@ -7,8 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const { toast } = useToast();
 
-  // useSignIn may not actually take any arguments for latest @farcaster/auth-kit
-  const { signIn, isSuccess, isPolling, data } = useSignIn();
+  // Pass an empty object as the argument to useSignIn
+  const { signIn, isSuccess, isPolling, data } = useSignIn({});
 
   const handleSignIn = async () => {
     try {
