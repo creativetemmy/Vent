@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           connected_at: string | null
+          did: string | null
           display_name: string | null
           fid: number
           id: string
@@ -22,6 +23,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           connected_at?: string | null
+          did?: string | null
           display_name?: string | null
           fid: number
           id?: string
@@ -31,6 +33,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           connected_at?: string | null
+          did?: string | null
           display_name?: string | null
           fid?: number
           id?: string
@@ -219,7 +222,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_farcaster_user: {
+        Args: {
+          p_fid: number
+          p_username: string
+          p_display_name: string
+          p_avatar_url: string
+          p_did: string
+          p_user_id?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
