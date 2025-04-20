@@ -8,7 +8,7 @@ const FARCASTER_CLIENT_ID = "farcaster.xyz"; // Adjust if needed
 
 const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const { toast } = useToast();
-  const { signIn, isSuccess, isPending, data } = useSignIn();
+  const { signIn, isSuccess, isPolling, data } = useSignIn();
 
   const handleSignIn = async () => {
     try {
@@ -19,7 +19,7 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
 
         // Optionally upsert DID or connect account in Supabase here
         try {
-          const did = data.signer?.toLowerCase() || "";
+          const did = data.custody_address?.toLowerCase() || "";
           
           if (did) {
             // Use the upsert function to store the DID
@@ -27,7 +27,7 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
               p_fid: data.fid,
               p_username: data.username || "",
               p_display_name: data.displayName || "",
-              p_avatar_url: data.pfp || "",
+              p_avatar_url: data.pfp_url || "",
               p_did: did,
               p_user_id: null // Link to auth user later if needed
             });
@@ -52,7 +52,6 @@ const FarcasterAuthButton: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }
   return (
     <SignInButton
       onSuccess={handleSignIn}
-      loading={isPending}
     />
   );
 };
