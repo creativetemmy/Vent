@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown, MessageSquare, Share, Star, Link, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
@@ -7,10 +7,12 @@ import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import EvidenceImage from "./VentCard/EvidenceImage";
 import TagsMentions from "./VentCard/TagsMentions";
-import VoteButtons from "./VentCard/VoteButtons";
+import UserHeader from "./VentCard/UserHeader";
+import VentContent from "./VentCard/VentContent";
+import VentFooter from "./VentCard/VentFooter";
 
 interface VentCardProps {
-  vent: Tables<'vents'> & { txHash?: string }; // Add optional txHash property
+  vent: Tables<'vents'> & { txHash?: string };
 }
 
 const VOTE_COST = 10;
@@ -119,64 +121,25 @@ const VentCard: React.FC<VentCardProps> = ({ vent }) => {
       className="w-[343px] h-auto min-h-[150px] bg-vent-card rounded-lg p-4 mb-4 cursor-pointer hover:bg-gray-700 transition-colors animate-fade-in"
       onClick={handleCardClick}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-base">
-            {vent.user_id.slice(0, 6)}...{vent.user_id.slice(-4)}
-          </span>
-          <Wallet className="h-4 w-4 text-twitter" />
-        </div>
-        <span className="text-sm text-vent-muted">
-          {vent.created_at ? new Date(vent.created_at).toLocaleString() : ""}
-        </span>
-      </div>
-
-      <p className="text-base mb-3 line-clamp-2">{vent.content}</p>
-
+      <UserHeader userId={vent.user_id} createdAt={vent.created_at} />
+      <VentContent content={vent.content} />
       <div className="flex justify-between mb-3">
         {vent.evidence && (
           <EvidenceImage url={vent.evidence} onClick={handleEvidenceClick} />
         )}
         <TagsMentions hashtags={vent.hashtags} mentions={vent.mentions} />
       </div>
-
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <VoteButtons
-            userPoints={userPoints}
-            votesOnThisVent={votesOnThisVent}
-            voteLimit={VOTE_LIMIT}
-            voteCost={VOTE_COST}
-            loadingVote={loadingVote}
-            upvotes={vent.upvotes ?? 0}
-            downvotes={vent.downvotes ?? 0}
-            handleVote={handleVote}
-          />
-
-          <div className="flex items-center gap-1">
-            <MessageSquare className="h-5 w-5 text-white" />
-            {/* The comments count will be the number of counter-vents (replies); handled in VentDetails */}
-            <span className="text-white text-sm">–</span>
-          </div>
-        </div>
-
-        <div onClick={e => e.stopPropagation()}>
-          <Share className="h-5 w-5 text-white cursor-pointer" />
-        </div>
-      </div>
-
-      {vent.txHash && (
-        <div className="mt-2 text-xs text-twitter hover:underline">
-          <a
-            href={`https://optimistic.etherscan.io/tx/${vent.txHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-          >
-            View on Etherscan
-          </a>
-        </div>
-      )}
+      <VentFooter
+        userPoints={userPoints}
+        votesOnThisVent={votesOnThisVent}
+        voteLimit={VOTE_LIMIT}
+        voteCost={VOTE_COST}
+        loadingVote={loadingVote}
+        upvotes={vent.upvotes ?? 0}
+        downvotes={vent.downvotes ?? 0}
+        handleVote={handleVote}
+        txHash={vent.txHash}
+      />
     </div>
   );
 };
