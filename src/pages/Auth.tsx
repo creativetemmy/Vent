@@ -80,6 +80,14 @@ const Auth = () => {
     if (e.key === 'Enter' && !loading) handleFarcasterLogin();
   };
 
+  const handleFarcasterAuthSuccess = () => {
+    toast({ 
+      title: "Success", 
+      description: "Farcaster account connected!" 
+    });
+    // You can add navigation or further steps here
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-vent-bg">
       <div className="w-full max-w-md p-6 bg-vent-card rounded-lg shadow-xl">
@@ -112,7 +120,7 @@ const Auth = () => {
 
           <div className="flex flex-col gap-2 items-center">
             <span className="text-vent-muted text-sm">or sign in with Farcaster wallet</span>
-            <FarcasterAuthButton />
+            <FarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
           </div>
         </div>
         <div className="mt-6 text-sm text-center text-vent-muted">
