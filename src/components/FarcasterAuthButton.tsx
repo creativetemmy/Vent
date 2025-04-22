@@ -10,8 +10,8 @@ type FarcasterAuthButtonProps = {
   onSuccess?: () => void;
 };
 
-const GRADIENT =
-  "bg-gradient-to-r from-[#1DA1F2] to-[#7B61FF]";
+const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
+const GRADIENT = "bg-gradient-to-r from-[#1DA1F2] to-[#7B61FF]";
 
 const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
   onSuccess,
@@ -19,12 +19,10 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signIn, isPolling, isSuccess, data } = useSignIn({});
-
-  // Detect if MetaMask is installed
   const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
 
+  // Detect if MetaMask is installed
   useEffect(() => {
-    // Detect window.ethereum as injected by MetaMask
     if (typeof window !== "undefined" && (window as any).ethereum) {
       setHasMetaMask(true);
     } else {
@@ -37,82 +35,98 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
     if (isSuccess && data && typeof data === "object" && "fid" in data) {
       const handleSuccessfulAuth = async () => {
         try {
-          // Standardize address field casing and upsert to Supabase
-          const custodyAddress =
-            (data as any).walletAddress?.toLowerCase?.() ||
-            (data as any).custodyAddress?.toLowerCase?.() ||
-            "";
-            
-          if (custodyAddress) {
-            // Store Farcaster user in Supabase
-            const { data: userData, error } = await supabase.rpc("upsert_farcaster_user", {
-              p_fid: data.fid,
-              p_username: data.username || "",
-              p_display_name: data.displayName || "",
-              p_avatar_url: data.pfpUrl || "",
-              p_did: custodyAddress,
-              p_user_id: null,
-            });
-            
-            if (error) {
-              console.error("Error storing Farcaster data:", error);
-              return;
-            }
-            
-            // Sign into Supabase with custom token
-            // Note: We're using the FID as a unique identifier
-            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-              email: `farcaster-${data.fid}@example.com`,
-              password: `fc-${data.fid}-${custodyAddress.substring(0, 8)}`,
-            });
-            
-            if (authError) {
-              // If login failed, try to sign up
-              const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-                email: `farcaster-${data.fid}@example.com`,
-                password: `fc-${data.fid}-${custodyAddress.substring(0, 8)}`,
-                options: {
-                  data: {
-                    fid: data.fid,
-                    username: data.username,
-                    display_name: data.displayName,
-                    avatar_url: data.pfpUrl,
-                    farcaster_user: true
-                  }
-                }
-              });
-              
-              if (signUpError) {
-                console.error("Error signing up:", signUpError);
-                toast({
-                  title: "Authentication Failed",
-                  description: "Could not create a user session. Please try again.",
-                  variant: "destructive",
-                });
-                return;
+          // First, resolve the user's DID using Neynar API
+          const param = `fid=${data.fid}`;
+          const res = await fetch(
+            `${NEYNAR_API_URL}/lookup?${param}`,
+            {
+              headers: {
+                "accept": "application/json",
+                "api_key": "NEYNAR_API_KEY" // This will be replaced with the actual key by Supabase
               }
             }
-            
-            toast({
-              title: "Connected!",
-              description: "Wallet and Farcaster account connected.",
-            });
-            
-            if (onSuccess) onSuccess();
-            
-            // Navigate to home page
-            navigate("/");
+          );
+
+          if (!res.ok) {
+            throw new Error("Failed to resolve Farcaster user data");
           }
-        } catch (err) {
+
+          const neynarData = await res.json();
+          const user = neynarData.result.user;
+
+          if (!user) {
+            throw new Error("No user data found from Neynar");
+          }
+
+          // Get the custody address and ensure proper casing
+          const custodyAddress = (user.custody_address || "").toLowerCase();
+          
+          if (!custodyAddress) {
+            throw new Error("No custody address found for user");
+          }
+
+          // Store Farcaster user in Supabase
+          const { data: userData, error } = await supabase.rpc("upsert_farcaster_user", {
+            p_fid: user.fid,
+            p_username: user.username,
+            p_display_name: user.display_name || "",
+            p_avatar_url: user.pfp_url || "",
+            p_did: custodyAddress,
+            p_user_id: null,
+          });
+
+          if (error) {
+            console.error("Error storing Farcaster data:", error);
+            throw new Error("Failed to store Farcaster user data");
+          }
+
+          // Create or sign in Supabase user
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email: `farcaster-${user.fid}@example.com`,
+            password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
+          });
+
+          if (authError) {
+            // If login failed, try to sign up
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: `farcaster-${user.fid}@example.com`,
+              password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
+              options: {
+                data: {
+                  fid: user.fid,
+                  username: user.username,
+                  display_name: user.display_name,
+                  avatar_url: user.pfp_url,
+                  farcaster_user: true,
+                  did: custodyAddress
+                }
+              }
+            });
+
+            if (signUpError) {
+              console.error("Error signing up:", signUpError);
+              throw new Error("Could not create user account");
+            }
+          }
+
+          toast({
+            title: "Connected!",
+            description: "Farcaster account connected successfully.",
+          });
+
+          if (onSuccess) onSuccess();
+          navigate("/");
+
+        } catch (err: any) {
           console.error("Farcaster auth processing error:", err);
           toast({
             title: "Authentication Error",
-            description: "Failed to complete authentication process.",
+            description: err.message || "Failed to complete authentication process.",
             variant: "destructive",
           });
         }
       };
-      
+
       handleSuccessfulAuth();
     }
   }, [isSuccess, data, toast, onSuccess, navigate]);
@@ -124,7 +138,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
       console.error("Farcaster auth error:", err);
       toast({
         title: "Farcaster Sign-In Error",
-        description: err?.message || "Unknown error.",
+        description: err?.message || "Failed to initiate sign-in.",
         variant: "destructive",
       });
     }
@@ -132,7 +146,6 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
   return (
     <>
-      {/* If MetaMask is not installed, show a prominent warning */}
       {!hasMetaMask ? (
         <div className="w-full flex items-center gap-2 border border-red-500 bg-red-100/80 text-red-700 px-4 py-3 rounded-lg mb-2 font-medium text-base">
           <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
@@ -156,9 +169,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
           aria-label="Sign in with Farcaster"
         >
           <LogIn className="mr-2 h-5 w-5 opacity-90" />
-          {isPolling
-            ? "Connecting..."
-            : "Sign In with Farcaster Wallet"}
+          {isPolling ? "Connecting..." : "Sign In with Farcaster Wallet"}
         </button>
       )}
     </>
