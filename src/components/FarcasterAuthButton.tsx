@@ -42,7 +42,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             {
               headers: {
                 "accept": "application/json",
-                "api_key": "NEYNAR_API_KEY" // This will be replaced with the actual key by Supabase
+                "api_key": "NEYNAR_API_KEY" // This will be replaced with the secret from Supabase
               }
             }
           );

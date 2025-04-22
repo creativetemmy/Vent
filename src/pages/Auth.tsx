@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +9,7 @@ import FarcasterAuthButton from "@/components/FarcasterAuthButton";
 import { AuthKitProvider } from "@farcaster/auth-kit";
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-const NEYNAR_API_KEY = "NEYNAR_DEV_API_KEY"; // Replace with your Neynar API key or use a secret
+const NEYNAR_API_KEY = "NEYNAR_DEV_API_KEY"; // This will be replaced with the secret from Supabase
 
 const Auth = () => {
   const [farcasterInput, setFarcasterInput] = useState('');
@@ -106,22 +107,21 @@ const Auth = () => {
       title: "Success",
       description: "Farcaster account connected!"
     });
-    // Further steps or navigation go here...
+    navigate('/');
   };
 
   return (
     <AuthKitProvider
       config={{
-        rpcUrl: 'https://mainnet.optimism.io', // Replace with your preferred RPC URL
+        rpcUrl: 'https://mainnet.optimism.io',
+        domain: window.location.host,
         siweUri: window.location.origin,
-        appName: 'Your App Name'
       }}
     >
       <div className="min-h-screen flex items-center justify-center bg-vent-bg">
-        <div className="w-full max-w-md p-6 bg-vent-card rounded-lg shadow-xl">
+        <div className="w-full max-w-[343px] p-6 bg-vent-card rounded-lg shadow-xl">
           <h1 className="text-2xl font-bold text-white mb-6 text-center">Sign In with Farcaster</h1>
           <div className="space-y-4">
-
             {/* Main: Farcaster Wallet Auth */}
             <div className="flex flex-col gap-2 items-center">
               <FarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
