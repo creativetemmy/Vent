@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSignIn } from "@farcaster/auth-kit";
 import { LogIn, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 type FarcasterAuthButtonProps = {
   onSuccess?: () => void;
@@ -16,6 +17,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
   onSuccess,
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { signIn, isPolling, isSuccess, data } = useSignIn({});
 
   // Detect if MetaMask is installed
@@ -30,22 +32,20 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
     }
   }, []);
 
-  const handleSignIn = async () => {
-    try {
-      await signIn();
-      if (data && typeof data === "object" && "fid" in data) {
-        toast({
-          title: "Connected!",
-          description: "Wallet and Farcaster account connected.",
-        });
+  // Handle successful Farcaster auth data
+  useEffect(() => {
+    if (isSuccess && data && typeof data === "object" && "fid" in data) {
+      const handleSuccessfulAuth = async () => {
         try {
           // Standardize address field casing and upsert to Supabase
           const custodyAddress =
             (data as any).walletAddress?.toLowerCase?.() ||
             (data as any).custodyAddress?.toLowerCase?.() ||
             "";
+            
           if (custodyAddress) {
-            await supabase.rpc("upsert_farcaster_user", {
+            // Store Farcaster user in Supabase
+            const { data: userData, error } = await supabase.rpc("upsert_farcaster_user", {
               p_fid: data.fid,
               p_username: data.username || "",
               p_display_name: data.displayName || "",
@@ -53,12 +53,73 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
               p_did: custodyAddress,
               p_user_id: null,
             });
+            
+            if (error) {
+              console.error("Error storing Farcaster data:", error);
+              return;
+            }
+            
+            // Sign into Supabase with custom token
+            // Note: We're using the FID as a unique identifier
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+              email: `farcaster-${data.fid}@example.com`,
+              password: `fc-${data.fid}-${custodyAddress.substring(0, 8)}`,
+            });
+            
+            if (authError) {
+              // If login failed, try to sign up
+              const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                email: `farcaster-${data.fid}@example.com`,
+                password: `fc-${data.fid}-${custodyAddress.substring(0, 8)}`,
+                options: {
+                  data: {
+                    fid: data.fid,
+                    username: data.username,
+                    display_name: data.displayName,
+                    avatar_url: data.pfpUrl,
+                    farcaster_user: true
+                  }
+                }
+              });
+              
+              if (signUpError) {
+                console.error("Error signing up:", signUpError);
+                toast({
+                  title: "Authentication Failed",
+                  description: "Could not create a user session. Please try again.",
+                  variant: "destructive",
+                });
+                return;
+              }
+            }
+            
+            toast({
+              title: "Connected!",
+              description: "Wallet and Farcaster account connected.",
+            });
+            
+            if (onSuccess) onSuccess();
+            
+            // Navigate to home page
+            navigate("/");
           }
         } catch (err) {
-          console.error("Error storing Farcaster data:", err);
+          console.error("Farcaster auth processing error:", err);
+          toast({
+            title: "Authentication Error",
+            description: "Failed to complete authentication process.",
+            variant: "destructive",
+          });
         }
-        if (onSuccess) onSuccess();
-      }
+      };
+      
+      handleSuccessfulAuth();
+    }
+  }, [isSuccess, data, toast, onSuccess, navigate]);
+
+  const handleSignIn = async () => {
+    try {
+      await signIn();
     } catch (err: any) {
       console.error("Farcaster auth error:", err);
       toast({
