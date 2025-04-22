@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSignIn } from "@farcaster/auth-kit";
 import { LogIn, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type FarcasterAuthButtonProps = {
   onSuccess?: () => void;
@@ -104,4 +105,3 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 };
 
 export default FarcasterAuthButton;
-
