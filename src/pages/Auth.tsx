@@ -6,24 +6,13 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import FarcasterAuthButton from "@/components/FarcasterAuthButton";
 import { AuthKitProvider } from "@farcaster/auth-kit";
-import { useAuth } from '@/contexts/AuthContext';
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223" // This will be replaced with the secret from Supabase
+const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
 
 const Auth = () => {
-  const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    if (session) {
-      supabase.auth.signOut().then(() => {
-        navigate('/');
-      });
-    }
-  }, [session, navigate]);
-
   const [farcasterInput, setFarcasterInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -33,6 +22,36 @@ const Auth = () => {
     if (/^\d+$/.test(input)) return { type: "fid" as const, value: input };
     if (input.startsWith("@")) input = input.slice(1);
     return { type: "username" as const, value: input };
+  };
+
+  const handleLogin = async (fid: number, username: string) => {
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: `farcaster-${fid}@example.com`,
+        password: `fc-${fid}-${username}`,
+      });
+
+      if (authError) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: `farcaster-${fid}@example.com`,
+          password: `fc-${fid}-${username}`,
+          options: {
+            data: {
+              fid: fid,
+              username: username,
+              farcaster_user: true
+            }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+      }
+
+      navigate('/');
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      throw err;
+    }
   };
 
   const fetchAndUpsertFarcasterUser = async (input: string) => {
@@ -65,8 +84,7 @@ const Auth = () => {
         p_user_id: null
       });
 
-      await supabase.auth.signOut();
-      navigate('/');
+      await handleLogin(user.fid, user.username);
     } catch (err: any) {
       if (type === "username") {
         const { data: cached } = await supabase
@@ -76,8 +94,7 @@ const Auth = () => {
           .maybeSingle();
 
         if (cached) {
-          await supabase.auth.signOut();
-          navigate('/');
+          await handleLogin(cached.fid, cached.username);
           return;
         }
 
@@ -110,7 +127,6 @@ const Auth = () => {
   };
 
   const handleFarcasterAuthSuccess = async () => {
-    await supabase.auth.signOut();
     navigate('/');
   };
 
