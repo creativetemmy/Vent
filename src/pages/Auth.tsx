@@ -6,22 +6,13 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import FarcasterAuthButton from "@/components/FarcasterAuthButton";
 import { AuthKitProvider } from "@farcaster/auth-kit";
-import { useAuth } from '@/contexts/AuthContext';
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223" // This will be replaced with the secret from Supabase
+const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
 
 const Auth = () => {
-  const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    if (session) {
-      navigate('/');
-    }
-  }, [session, navigate]);
-
   const [farcasterInput, setFarcasterInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -33,27 +24,55 @@ const Auth = () => {
     return { type: "username" as const, value: input };
   };
 
+  const handleLogin = async (fid: number, username: string) => {
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: `farcaster-${fid}@example.com`,
+        password: `fc-${fid}-${username}`,
+      });
+
+      if (authError) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: `farcaster-${fid}@example.com`,
+          password: `fc-${fid}-${username}`,
+          options: {
+            data: {
+              fid: fid,
+              username: username,
+              farcaster_user: true
+            }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+      }
+
+      navigate('/');
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      throw err;
+    }
+  };
+
   const fetchAndUpsertFarcasterUser = async (input: string) => {
     setLoading(true);
     setErrorMsg(null);
 
     const { type, value } = normalizeInput(input);
 
-    let user = null;
-
     try {
       const param = type === "fid" ? `fid=${value}` : `username=${value}`;
       const res = await fetch(
-        `${NEYNAR_API_URL}/by_username?${param}`,
+        `${NEYNAR_API_URL}/user/by_username?${param}`,
         {
           headers: { "accept": "application/json", "api_key": NEYNAR_API_KEY }
         }
       );
-      if (!res.ok){ 
-        throw new Error("Account not found via Neynar");
-      } 
+      
+      if (!res.ok) throw new Error("Account not found via Neynar");
+      
       const json = await res.json();
-      user = json.user;
+      const user = json.user;
       if (!user) throw new Error("No user found, check spelling or FID.");
 
       await supabase.rpc("upsert_farcaster_user", {
@@ -65,17 +84,17 @@ const Auth = () => {
         p_user_id: null
       });
 
-      navigate('VentNow');
+      navigate('/');
     } catch (err: any) {
       if (type === "username") {
-        const { data: cached, error } = await supabase
+        const { data: cached } = await supabase
           .from("farcaster_users")
           .select("*")
           .eq("username", value)
           .maybeSingle();
 
         if (cached) {
-          navigate('/vent-now" ');
+          navigate('/');
           return;
         }
 
@@ -107,11 +126,7 @@ const Auth = () => {
     if (e.key === 'Enter' && !loading) handleFarcasterLogin();
   };
 
-  const handleFarcasterAuthSuccess = () => {
-    toast({
-      title: "Success",
-      description: "Farcaster account connected!"
-    });
+  const handleFarcasterAuthSuccess = async () => {
     navigate('/');
   };
 
