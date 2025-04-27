@@ -9,7 +9,7 @@ import FarcasterAuthButton from "@/components/FarcasterAuthButton";
 import { AuthKitProvider } from "@farcaster/auth-kit";
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-const NEYNAR_API_KEY = "NEYNAR_DEV_API_KEY"; // This will be replaced with the secret from Supabase
+const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223" // This will be replaced with the secret from Supabase
 
 const Auth = () => {
   const [farcasterInput, setFarcasterInput] = useState('');
@@ -36,15 +36,18 @@ const Auth = () => {
     try {
       const param = type === "fid" ? `fid=${value}` : `username=${value}`;
       const res = await fetch(
-        `${NEYNAR_API_URL}/lookup?${param}`,
+        `${NEYNAR_API_URL}/by_username?${param}`,
         {
           headers: { "accept": "application/json", "api_key": NEYNAR_API_KEY }
         }
       );
-      if (!res.ok) throw new Error("Account not found via Neynar");
+      if (!res.ok){ 
+        throw new Error("Account not found via Neynar");
+      } 
       const json = await res.json();
-      user = json.result.user;
+      user = json.user;
       if (!user) throw new Error("No user found, check spelling or FID.");
+
 
       // SUPABASE CACHE: store mapping
       await supabase.rpc("upsert_farcaster_user", {
