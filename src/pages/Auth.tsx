@@ -18,7 +18,9 @@ const Auth = () => {
   
   useEffect(() => {
     if (session) {
-      navigate('/');
+      supabase.auth.signOut().then(() => {
+        navigate('/');
+      });
     }
   }, [session, navigate]);
 
@@ -39,21 +41,19 @@ const Auth = () => {
 
     const { type, value } = normalizeInput(input);
 
-    let user = null;
-
     try {
       const param = type === "fid" ? `fid=${value}` : `username=${value}`;
       const res = await fetch(
-        `${NEYNAR_API_URL}/by_username?${param}`,
+        `${NEYNAR_API_URL}/user/by_username?${param}`,
         {
           headers: { "accept": "application/json", "api_key": NEYNAR_API_KEY }
         }
       );
-      if (!res.ok){ 
-        throw new Error("Account not found via Neynar");
-      } 
+      
+      if (!res.ok) throw new Error("Account not found via Neynar");
+      
       const json = await res.json();
-      user = json.user;
+      const user = json.user;
       if (!user) throw new Error("No user found, check spelling or FID.");
 
       await supabase.rpc("upsert_farcaster_user", {
@@ -65,16 +65,18 @@ const Auth = () => {
         p_user_id: null
       });
 
+      await supabase.auth.signOut();
       navigate('/');
     } catch (err: any) {
       if (type === "username") {
-        const { data: cached, error } = await supabase
+        const { data: cached } = await supabase
           .from("farcaster_users")
           .select("*")
           .eq("username", value)
           .maybeSingle();
 
         if (cached) {
+          await supabase.auth.signOut();
           navigate('/');
           return;
         }
@@ -107,11 +109,8 @@ const Auth = () => {
     if (e.key === 'Enter' && !loading) handleFarcasterLogin();
   };
 
-  const handleFarcasterAuthSuccess = () => {
-    toast({
-      title: "Success",
-      description: "Farcaster account connected!"
-    });
+  const handleFarcasterAuthSuccess = async () => {
+    await supabase.auth.signOut();
     navigate('/');
   };
 
