@@ -65,7 +65,7 @@ const Auth = () => {
         p_user_id: null
       });
 
-      navigate('/');
+      navigate('VentNow');
     } catch (err: any) {
       if (type === "username") {
         const { data: cached, error } = await supabase
@@ -75,7 +75,7 @@ const Auth = () => {
           .maybeSingle();
 
         if (cached) {
-          navigate('/');
+          navigate('/vent-now" ');
           return;
         }
 
