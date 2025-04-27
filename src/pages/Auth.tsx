@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +15,7 @@ const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223" // This will be re
 const Auth = () => {
   const { session } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   useEffect(() => {
     if (session) {
