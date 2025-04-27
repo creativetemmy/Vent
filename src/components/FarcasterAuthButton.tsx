@@ -23,10 +23,8 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
   // Detect if MetaMask is installed
   useEffect(() => {
-    if (typeof window !== "undefined" && (window as any).ethereum) {
-      setHasMetaMask(true);
-    } else {
-      setHasMetaMask(false);
+    if (typeof window !== "undefined") {
+      setHasMetaMask(!!(window as any).ethereum);
     }
   }, []);
 
