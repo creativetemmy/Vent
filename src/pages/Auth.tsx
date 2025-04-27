@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,7 +57,6 @@ const Auth = () => {
       if (!user) throw new Error("No user found, check spelling or FID.");
 
 
-      // SUPABASE CACHE: store mapping
       await supabase.rpc("upsert_farcaster_user", {
         p_fid: user.fid,
         p_username: user.username,
@@ -70,10 +68,9 @@ const Auth = () => {
 
       toast({ title: "Success", description: "Farcaster user recognized. You can now continue!" });
       setErrorMsg(null);
+      navigate('/');
     } catch (err: any) {
-      // If Neynar fails, try Supabase cache as fallback
       if (type === "username") {
-        // Try to resolve username to DID via Supabase
         const { data: cached, error } = await supabase
           .from("farcaster_users")
           .select("*")
@@ -134,20 +131,15 @@ const Auth = () => {
         <div className="w-full max-w-[343px] p-6 bg-vent-card rounded-lg shadow-xl">
           <h1 className="text-2xl font-bold text-white mb-6 text-center">Sign In with Farcaster</h1>
           <div className="space-y-4">
-            {/* Main: Farcaster Wallet Auth */}
             <div className="flex flex-col gap-2 items-center">
               <FarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
               <span className="text-vent-muted text-xs">Secure &mdash; Sign in with your Farcaster Wallet</span>
             </div>
-
-            {/* Divider for fallback method */}
             <div className="flex items-center my-2">
               <span className="flex-grow border-t border-gray-700" />
               <span className="mx-3 text-gray-500 text-xs">or</span>
               <span className="flex-grow border-t border-gray-700" />
             </div>
-
-            {/* Fallback: Username/FID lookup */}
             <div className="bg-vent-bg/80 rounded p-4">
               <label className="block text-xs text-vent-muted mb-2">
                 Can't use wallet? <span className="font-semibold">Enter your Farcaster username or FID</span> instead:
