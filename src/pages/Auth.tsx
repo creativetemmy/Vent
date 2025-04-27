@@ -56,7 +56,6 @@ const Auth = () => {
       user = json.user;
       if (!user) throw new Error("No user found, check spelling or FID.");
 
-
       await supabase.rpc("upsert_farcaster_user", {
         p_fid: user.fid,
         p_username: user.username,
@@ -66,8 +65,6 @@ const Auth = () => {
         p_user_id: null
       });
 
-      toast({ title: "Success", description: "Farcaster user recognized. You can now continue!" });
-      setErrorMsg(null);
       navigate('/');
     } catch (err: any) {
       if (type === "username") {
@@ -78,8 +75,7 @@ const Auth = () => {
           .maybeSingle();
 
         if (cached) {
-          toast({ title: "Found in Cache", description: "Farcaster user found in cache." });
-          setErrorMsg(null);
+          navigate('/');
           return;
         }
 
