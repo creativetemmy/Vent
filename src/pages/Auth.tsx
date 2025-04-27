@@ -9,7 +9,7 @@ import { AuthKitProvider } from "@farcaster/auth-kit";
 import { useAuth } from '@/contexts/AuthContext';
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223" // This will be replaced with the secret from Supabase
+const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
 
 const Auth = () => {
   const { session } = useAuth();
@@ -17,10 +17,13 @@ const Auth = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    if (session) {
-      navigate('/');
-    }
-  }, [session, navigate]);
+    const signOutCurrentUser = async () => {
+      if (session) {
+        await supabase.auth.signOut();
+      }
+    };
+    signOutCurrentUser();
+  }, [session]);
 
   const [farcasterInput, setFarcasterInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,17 +68,19 @@ const Auth = () => {
         p_user_id: null
       });
 
-      navigate('/');
+      await supabase.auth.signOut();
+      navigate('/splash');
     } catch (err: any) {
       if (type === "username") {
-        const { data: cached, error } = await supabase
+        const { data: cached } = await supabase
           .from("farcaster_users")
           .select("*")
           .eq("username", value)
           .maybeSingle();
 
         if (cached) {
-          navigate('/');
+          await supabase.auth.signOut();
+          navigate('/splash');
           return;
         }
 
@@ -107,12 +112,13 @@ const Auth = () => {
     if (e.key === 'Enter' && !loading) handleFarcasterLogin();
   };
 
-  const handleFarcasterAuthSuccess = () => {
+  const handleFarcasterAuthSuccess = async () => {
     toast({
       title: "Success",
       description: "Farcaster account connected!"
     });
-    navigate('/');
+    await supabase.auth.signOut();
+    navigate('/splash');
   };
 
   return (
