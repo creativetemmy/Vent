@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSignIn } from "@farcaster/auth-kit";
@@ -21,26 +20,23 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
   const { signIn, isPolling, isSuccess, data } = useSignIn({});
   const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
 
-  // Detect if MetaMask is installed
   useEffect(() => {
     if (typeof window !== "undefined") {
       setHasMetaMask(!!(window as any).ethereum);
     }
   }, []);
 
-  // Handle successful Farcaster auth data
   useEffect(() => {
     if (isSuccess && data && typeof data === "object" && "fid" in data) {
       const handleSuccessfulAuth = async () => {
         try {
-          // First, resolve the user's DID using Neynar API
           const param = `fid=${data.fid}`;
           const res = await fetch(
             `${NEYNAR_API_URL}/lookup?${param}`,
             {
               headers: {
                 "accept": "application/json",
-                "api_key": "NEYNAR_API_KEY" // This will be replaced with the secret from Supabase
+                "api_key": "NEYNAR_API_KEY"
               }
             }
           );
@@ -56,15 +52,13 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             throw new Error("No user data found from Neynar");
           }
 
-          // Get the custody address and ensure proper casing
           const custodyAddress = (user.custody_address || "").toLowerCase();
           
           if (!custodyAddress) {
             throw new Error("No custody address found for user");
           }
 
-          // Store Farcaster user in Supabase
-          const { data: userData, error } = await supabase.rpc("upsert_farcaster_user", {
+          const { error: upsertError } = await supabase.rpc("upsert_farcaster_user", {
             p_fid: user.fid,
             p_username: user.username,
             p_display_name: user.display_name || "",
@@ -73,20 +67,18 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             p_user_id: null,
           });
 
-          if (error) {
-            console.error("Error storing Farcaster data:", error);
+          if (upsertError) {
+            console.error("Error storing Farcaster data:", upsertError);
             throw new Error("Failed to store Farcaster user data");
           }
 
-          // Create or sign in Supabase user
-          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          const { error: authError } = await supabase.auth.signInWithPassword({
             email: `farcaster-${user.fid}@example.com`,
             password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
           });
 
           if (authError) {
-            // If login failed, try to sign up
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            const { error: signUpError } = await supabase.auth.signUp({
               email: `farcaster-${user.fid}@example.com`,
               password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
               options: {
@@ -112,9 +104,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             description: "Farcaster account connected successfully.",
           });
 
-          if (onSuccess) onSuccess();
           navigate("/");
-
         } catch (err: any) {
           console.error("Farcaster auth processing error:", err);
           toast({
@@ -127,7 +117,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
       handleSuccessfulAuth();
     }
-  }, [isSuccess, data, toast, onSuccess, navigate]);
+  }, [isSuccess, data, toast, navigate]);
 
   const handleSignIn = async () => {
     try {
