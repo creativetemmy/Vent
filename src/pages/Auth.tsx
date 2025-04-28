@@ -78,7 +78,7 @@ const Auth = () => {
           .maybeSingle();
 
         if (cached) {
-          await handleLogin(cached.fid, cached.username);
+          await handleLogin(cached.fid.toString(), cached.username);
           return;
         }
 
@@ -116,7 +116,7 @@ const Auth = () => {
       description: "Farcaster account connected!"
     });
     await supabase.auth.signOut();
-    navigate('/');
+    navigate('/app');
   };
 
   return (
@@ -179,4 +179,15 @@ const Auth = () => {
   );
 };
 
+async function handleLogin(fid: string, username: string) {
+  // For example, store the user data in localStorage (or update your auth context) and redirect.
+  localStorage.setItem('fid', fid);
+  localStorage.setItem('username', username);
+  window.location.href = '/';
+}
+
+const fid = 12345; // Example number
+handleLogin(fid.toString(), 'exampleUsername');
+
 export default Auth;
+
