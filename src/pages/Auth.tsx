@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -116,14 +115,24 @@ const Auth = () => {
       title: "Success",
       description: "Farcaster account connected!"
     });
-    navigate('/');
+    try {
+      navigate('/');
+    } catch (error) {
+      console.warn('Fallback redirect using window.location');
+      window.location.href = '/';
+    }
   };
 
   const handleLogin = async (fid: string, username: string) => {
     // Store the user data in localStorage and redirect
     localStorage.setItem('fid', fid);
     localStorage.setItem('username', username);
-    navigate('/');
+    try {
+      navigate('/');
+    } catch (error) {
+      console.warn('Fallback redirect using window.location');
+      window.location.href = '/';
+    }
   };
 
   return (

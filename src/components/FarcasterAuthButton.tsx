@@ -113,7 +113,13 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
           if (onSuccess) {
             onSuccess();
           } else {
-            navigate("/");
+            // Enhanced navigation with fallback
+            try {
+              navigate("/");
+            } catch (error) {
+              console.warn('Fallback redirect using window.location');
+              window.location.href = '/';
+            }
           }
         } catch (err: any) {
           console.error("Farcaster auth processing error:", err);
