@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSignIn } from "@farcaster/auth-kit";
@@ -104,7 +105,16 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             description: "Farcaster account connected successfully.",
           });
 
-          navigate("/");
+          // Save user data in localStorage
+          localStorage.setItem('fid', String(user.fid));
+          localStorage.setItem('username', user.username || '');
+          
+          // Call onSuccess if provided
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            navigate("/");
+          }
         } catch (err: any) {
           console.error("Farcaster auth processing error:", err);
           toast({
@@ -117,7 +127,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
       handleSuccessfulAuth();
     }
-  }, [isSuccess, data, toast, navigate]);
+  }, [isSuccess, data, toast, navigate, onSuccess]);
 
   const handleSignIn = async () => {
     try {

@@ -9,32 +9,27 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function FarcasterConnect() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
+  const { session, farcasterUser } = useAuth();
 
   useEffect(() => {
     // Check if user has already connected Farcaster
     const checkFarcasterConnection = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        setIsOpen(true);
+        setIsOpen(false);
         return;
       }
-
-      const { data: farcasterUser } = await supabase
-        .from('farcaster_users')
-        .select()
-        .eq('user_id', session.user.id)
-        .single();
 
       setIsOpen(!farcasterUser);
     };
 
     checkFarcasterConnection();
-  }, []);
+  }, [session, farcasterUser]);
 
   const handleConnect = async () => {
     setIsConnecting(true);
@@ -56,6 +51,11 @@ export function FarcasterConnect() {
       setIsConnecting(false);
     }
   };
+
+  // Don't show the dialog if user is not logged in
+  if (!session?.user) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

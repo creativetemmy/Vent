@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -115,8 +116,14 @@ const Auth = () => {
       title: "Success",
       description: "Farcaster account connected!"
     });
-    await supabase.auth.signOut();
-    navigate('/app');
+    navigate('/');
+  };
+
+  const handleLogin = async (fid: string, username: string) => {
+    // Store the user data in localStorage and redirect
+    localStorage.setItem('fid', fid);
+    localStorage.setItem('username', username);
+    navigate('/');
   };
 
   return (
@@ -179,15 +186,4 @@ const Auth = () => {
   );
 };
 
-async function handleLogin(fid: string, username: string) {
-  // For example, store the user data in localStorage (or update your auth context) and redirect.
-  localStorage.setItem('fid', fid);
-  localStorage.setItem('username', username);
-  window.location.href = '/';
-}
-
-const fid = 12345; // Example number
-handleLogin(fid.toString(), 'exampleUsername');
-
 export default Auth;
-
