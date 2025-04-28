@@ -69,7 +69,7 @@ const Auth = () => {
       });
 
       await supabase.auth.signOut();
-      navigate('/splash');
+      navigate('/');
     } catch (err: any) {
       if (type === "username") {
         const { data: cached } = await supabase
@@ -80,7 +80,7 @@ const Auth = () => {
 
         if (cached) {
           await supabase.auth.signOut();
-          navigate('/splash');
+          navigate('/');
           return;
         }
 
@@ -118,7 +118,7 @@ const Auth = () => {
       description: "Farcaster account connected!"
     });
     await supabase.auth.signOut();
-    navigate('/splash');
+    navigate('/');
   };
 
   return (
