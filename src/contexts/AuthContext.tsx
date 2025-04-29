@@ -21,6 +21,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [farcasterUser, setFarcasterUser] = useState(null);
 
   useEffect(() => {
+    // Check for Farcaster authentication from localStorage
+    const checkFarcasterAuth = async () => {
+      const fid = localStorage.getItem('fid');
+      
+      if (fid) {
+        const { data: farcasterData } = await supabase
+          .from('farcaster_users')
+          .select('*')
+          .eq('fid', fid)
+          .maybeSingle();
+          
+        if (farcasterData) {
+          setFarcasterUser(farcasterData);
+        }
+      }
+    };
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -37,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           setFarcasterUser(farcasterData);
         } else {
-          setFarcasterUser(null);
+          await checkFarcasterAuth();
         }
       }
     );
@@ -45,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // THEN check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
+      
       if (session?.user) {
         const { data: farcasterData } = await supabase
           .from('farcaster_users')
@@ -53,7 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .maybeSingle();
         
         setFarcasterUser(farcasterData);
+      } else {
+        await checkFarcasterAuth();
       }
+      
       setLoading(false);
     });
 

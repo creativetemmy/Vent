@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useSignIn } from "@farcaster/auth-kit";
+import { useSignIn, Status } from "@farcaster/auth-kit";
 import { LogIn, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ type FarcasterAuthButtonProps = {
 };
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
+const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
 const GRADIENT = "bg-gradient-to-r from-[#1DA1F2] to-[#7B61FF]";
 
 const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
@@ -18,7 +19,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, isPolling, isSuccess, data } = useSignIn({});
+  const { signIn, status, data, error } = useSignIn();
   const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
 
   useEffect(() => {
@@ -27,17 +28,18 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
     }
   }, []);
 
+  // Handle authentication success
   useEffect(() => {
-    if (isSuccess && data && typeof data === "object" && "fid" in data) {
+    if (status === Status.Success && data) {
       const handleSuccessfulAuth = async () => {
         try {
-          const param = `fid=${data.fid}`;
+          // Fetch user data from Neynar API
           const res = await fetch(
-            `${NEYNAR_API_URL}/lookup?${param}`,
+            `${NEYNAR_API_URL}/lookup?fid=${data.fid}`,
             {
               headers: {
                 "accept": "application/json",
-                "api_key": "NEYNAR_API_KEY" // This will be handled by Supabase environment variable
+                "api_key": NEYNAR_API_KEY
               }
             }
           );
@@ -59,18 +61,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             throw new Error("No custody address found for user");
           }
 
-          // First, try to find if the user already exists
-          const { data: existingUser, error: fetchError } = await supabase
-            .from("farcaster_users")
-            .select("*")
-            .eq("fid", user.fid)
-            .maybeSingle();
-
-          if (fetchError) {
-            console.error("Error checking for existing user:", fetchError);
-          }
-
-          // Use upsert_farcaster_user function to safely update or create the user
+          // Upsert the Farcaster user in database
           const { error: upsertError } = await supabase.rpc("upsert_farcaster_user", {
             p_fid: user.fid,
             p_username: user.username,
@@ -85,17 +76,21 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             throw new Error(`Failed to store Farcaster user data: ${upsertError.message}`);
           }
 
-          // Handle authentication
+          // Handle authentication with Supabase
+          const authEmail = `farcaster-${user.fid}@example.com`;
+          const authPassword = `fc-${user.fid}-${custodyAddress.substring(0, 8)}`;
+
+          // Try sign in first
           const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email: `farcaster-${user.fid}@example.com`,
-            password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
+            email: authEmail,
+            password: authPassword,
           });
 
+          // If sign-in fails, attempt to sign up
           if (authError) {
-            // If sign-in fails, attempt to sign up
             const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email: `farcaster-${user.fid}@example.com`,
-              password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
+              email: authEmail,
+              password: authPassword,
               options: {
                 data: {
                   fid: user.fid,
@@ -114,22 +109,21 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             }
           }
 
+          // Save user data in localStorage for easy access
+          localStorage.setItem('fid', String(user.fid));
+          localStorage.setItem('username', user.username || '');
+          
           toast({
             title: "Connected!",
             description: "Farcaster account connected successfully.",
           });
 
-          // Save user data in localStorage
-          localStorage.setItem('fid', String(user.fid));
-          localStorage.setItem('username', user.username || '');
-          
-          // Call onSuccess if provided
+          // Navigate to home page
           if (onSuccess) {
             onSuccess();
           } else {
-            // Enhanced navigation with fallback
             try {
-              navigate("/");
+              navigate('/');
             } catch (error) {
               console.warn('Fallback redirect using window.location');
               window.location.href = '/';
@@ -146,16 +140,23 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
       };
 
       handleSuccessfulAuth();
-    }
-  }, [isSuccess, data, toast, navigate, onSuccess]);
-
-  const handleSignIn = async () => {
-    try {
-      await signIn();
-    } catch (err: any) {
-      console.error("Farcaster auth error:", err);
+    } else if (status === Status.Error && error) {
+      console.error("Farcaster auth error:", error);
       toast({
-        title: "Farcaster Sign-In Error",
+        title: "Sign-In Error",
+        description: error.message || "An error occurred during sign-in.",
+        variant: "destructive",
+      });
+    }
+  }, [status, data, error, toast, navigate, onSuccess]);
+
+  const handleSignIn = () => {
+    try {
+      signIn();
+    } catch (err: any) {
+      console.error("Farcaster sign-in initiation error:", err);
+      toast({
+        title: "Error",
         description: err?.message || "Failed to initiate sign-in.",
         variant: "destructive",
       });
@@ -183,11 +184,11 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             fontSize: 18,
           }}
           onClick={handleSignIn}
-          disabled={isPolling}
+          disabled={status === Status.Pending}
           aria-label="Sign in with Farcaster"
         >
           <LogIn className="mr-2 h-5 w-5 opacity-90" />
-          {isPolling ? "Connecting..." : "Sign In with Farcaster Wallet"}
+          {status === Status.Pending ? "Connecting..." : "Sign In with Farcaster Wallet"}
         </button>
       )}
     </>

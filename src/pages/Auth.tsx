@@ -10,7 +10,6 @@ import { AuthKitProvider } from "@farcaster/auth-kit";
 import { useAuth } from '@/contexts/AuthContext';
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-// Use the API key directly here since it's already in the codebase
 const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
 
 const Auth = () => {
@@ -19,13 +18,16 @@ const Auth = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    const signOutCurrentUser = async () => {
-      if (session) {
-        await supabase.auth.signOut();
+    // Check if user is already logged in and redirect if needed
+    if (session) {
+      try {
+        navigate('/');
+      } catch (error) {
+        console.warn('Fallback redirect using window.location');
+        window.location.href = '/';
       }
-    };
-    signOutCurrentUser();
-  }, [session]);
+    }
+  }, [session, navigate]);
 
   const [farcasterInput, setFarcasterInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,7 +77,7 @@ const Auth = () => {
       );
       
       if (!res.ok){ 
-        throw new Error(`Account not found via Neynar: ${res.status}`);
+        throw new Error(`Account not found: ${res.status}`);
       }
       
       const json = await res.json();
@@ -89,7 +91,7 @@ const Auth = () => {
         p_username: user.username,
         p_display_name: user.display_name || "",
         p_avatar_url: user.pfp_url || "",
-        p_did: user.object?.properties?.did || user.custody_address || "",
+        p_did: user.custody_address || "",
         p_user_id: null
       });
 
@@ -138,6 +140,8 @@ const Auth = () => {
     // Store the user data in localStorage and redirect
     localStorage.setItem('fid', fid);
     localStorage.setItem('username', username);
+    
+    // Navigate to home page
     try {
       navigate('/');
     } catch (error) {

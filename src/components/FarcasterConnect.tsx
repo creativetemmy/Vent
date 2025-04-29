@@ -10,12 +10,14 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSignIn } from "@farcaster/auth-kit";
 
 export function FarcasterConnect() {
   const [isOpen, setIsOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
   const { session, farcasterUser } = useAuth();
+  const { signIn, status, data, error } = useSignIn();
 
   useEffect(() => {
     // Check if user has already connected Farcaster
@@ -34,20 +36,14 @@ export function FarcasterConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // Mock Farcaster connection for now
-      // TODO: Implement actual Farcaster authentication
-      toast({
-        title: "Connect your Farcaster account",
-        description: "This feature is coming soon!",
-      });
-    } catch (error) {
+      await signIn();
+    } catch (error: any) {
       console.error('Error connecting Farcaster:', error);
       toast({
         title: "Connection Failed",
-        description: "Failed to connect your Farcaster account. Please try again.",
+        description: error?.message || "Failed to connect your Farcaster account. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsConnecting(false);
     }
   };
@@ -71,10 +67,10 @@ export function FarcasterConnect() {
           </p>
           <Button
             onClick={handleConnect}
-            disabled={isConnecting}
+            disabled={isConnecting || status === 'pending'}
             className="w-full bg-twitter hover:bg-twitter/90"
           >
-            {isConnecting ? "Connecting..." : "Connect Farcaster"}
+            {isConnecting || status === 'pending' ? "Connecting..." : "Connect Farcaster"}
           </Button>
         </div>
       </DialogContent>
