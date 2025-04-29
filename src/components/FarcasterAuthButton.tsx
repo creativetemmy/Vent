@@ -20,8 +20,8 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signIn, isSuccess, isPolling, error, data } = useSignIn({
-    domain: window.location.host,
-    siweUri: window.location.origin,
+    enabled: true,
+    timeoutInMs: 300000, // 5 minutes
   });
   const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
 

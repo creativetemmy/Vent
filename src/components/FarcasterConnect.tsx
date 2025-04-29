@@ -18,8 +18,8 @@ export function FarcasterConnect() {
   const { toast } = useToast();
   const { session, farcasterUser } = useAuth();
   const { signIn, isPolling, data, error } = useSignIn({
-    domain: window.location.host,
-    siweUri: window.location.origin,
+    enabled: true,
+    timeoutInMs: 300000, // 5 minutes
   });
 
   useEffect(() => {
