@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ import { AuthKitProvider } from "@farcaster/auth-kit";
 import { useAuth } from '@/contexts/AuthContext';
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
+// Use the API key directly here since it's already in the codebase
 const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
 
 const Auth = () => {
@@ -42,24 +44,47 @@ const Auth = () => {
 
     const { type, value } = normalizeInput(input);
 
-    let user = null;
-
     try {
+      // First, try to find in Supabase
+      if (type === "username") {
+        const { data: cachedUser } = await supabase
+          .from("farcaster_users")
+          .select("*")
+          .eq("username", value)
+          .maybeSingle();
+
+        if (cachedUser) {
+          await handleLogin(cachedUser.fid.toString(), cachedUser.username);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // If not found in cache, fetch from Neynar
       const param = type === "fid" ? `fid=${value}` : `username=${value}`;
+      const endpoint = type === "fid" ? "lookup" : "by_username";
+      
       const res = await fetch(
-        `${NEYNAR_API_URL}/by_username?${param}`,
+        `${NEYNAR_API_URL}/${endpoint}?${param}`,
         {
-          headers: { "accept": "application/json", "api_key": NEYNAR_API_KEY }
+          headers: { 
+            "accept": "application/json", 
+            "api_key": NEYNAR_API_KEY 
+          }
         }
       );
+      
       if (!res.ok){ 
-        throw new Error("Account not found via Neynar");
-      } 
+        throw new Error(`Account not found via Neynar: ${res.status}`);
+      }
+      
       const json = await res.json();
-      user = json.user;
+      const user = json.user || (json.result?.user);
+      
       if (!user) throw new Error("No user found, check spelling or FID.");
 
-      await supabase.rpc("upsert_farcaster_user", {
+      // Use the upsert_farcaster_user RPC function to safely insert or update
+      const { error: upsertError } = await supabase.rpc("upsert_farcaster_user", {
         p_fid: user.fid,
         p_username: user.username,
         p_display_name: user.display_name || "",
@@ -68,34 +93,20 @@ const Auth = () => {
         p_user_id: null
       });
 
-      await handleLogin(user.fid, user.username);
-    } catch (err: any) {
-      if (type === "username") {
-        const { data: cached } = await supabase
-          .from("farcaster_users")
-          .select("*")
-          .eq("username", value)
-          .maybeSingle();
-
-        if (cached) {
-          await handleLogin(cached.fid.toString(), cached.username);
-          return;
-        }
-
-        setErrorMsg("Invalid Farcaster account, try DID.");
-        toast({
-          title: "User Not Found",
-          description: "Invalid Farcaster account, try DID.",
-          variant: "destructive"
-        });
-      } else {
-        setErrorMsg(err?.message || "Unknown error.");
-        toast({
-          title: "User Not Found",
-          description: err?.message || "No Farcaster account found.",
-          variant: "destructive"
-        });
+      if (upsertError) {
+        console.error("Error upserting user:", upsertError);
+        throw new Error(`Failed to save user data: ${upsertError.message}`);
       }
+
+      await handleLogin(user.fid.toString(), user.username);
+    } catch (err: any) {
+      console.error("Error fetching user:", err);
+      setErrorMsg(err?.message || "Unknown error.");
+      toast({
+        title: "User Not Found",
+        description: err?.message || "No Farcaster account found.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

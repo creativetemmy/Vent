@@ -37,28 +37,40 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             {
               headers: {
                 "accept": "application/json",
-                "api_key": "NEYNAR_API_KEY"
+                "api_key": "NEYNAR_API_KEY" // This will be handled by Supabase environment variable
               }
             }
           );
 
           if (!res.ok) {
-            throw new Error("Failed to resolve Farcaster user data");
+            throw new Error(`Failed to resolve Farcaster user data: ${res.status}`);
           }
 
           const neynarData = await res.json();
-          const user = neynarData.result.user;
-
-          if (!user) {
+          
+          if (!neynarData.result?.user) {
             throw new Error("No user data found from Neynar");
           }
-
+          
+          const user = neynarData.result.user;
           const custodyAddress = (user.custody_address || "").toLowerCase();
           
           if (!custodyAddress) {
             throw new Error("No custody address found for user");
           }
 
+          // First, try to find if the user already exists
+          const { data: existingUser, error: fetchError } = await supabase
+            .from("farcaster_users")
+            .select("*")
+            .eq("fid", user.fid)
+            .maybeSingle();
+
+          if (fetchError) {
+            console.error("Error checking for existing user:", fetchError);
+          }
+
+          // Use upsert_farcaster_user function to safely update or create the user
           const { error: upsertError } = await supabase.rpc("upsert_farcaster_user", {
             p_fid: user.fid,
             p_username: user.username,
@@ -70,16 +82,18 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
           if (upsertError) {
             console.error("Error storing Farcaster data:", upsertError);
-            throw new Error("Failed to store Farcaster user data");
+            throw new Error(`Failed to store Farcaster user data: ${upsertError.message}`);
           }
 
-          const { error: authError } = await supabase.auth.signInWithPassword({
+          // Handle authentication
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email: `farcaster-${user.fid}@example.com`,
             password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
           });
 
           if (authError) {
-            const { error: signUpError } = await supabase.auth.signUp({
+            // If sign-in fails, attempt to sign up
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
               email: `farcaster-${user.fid}@example.com`,
               password: `fc-${user.fid}-${custodyAddress.substring(0, 8)}`,
               options: {
@@ -96,7 +110,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
             if (signUpError) {
               console.error("Error signing up:", signUpError);
-              throw new Error("Could not create user account");
+              throw new Error(`Could not create user account: ${signUpError.message}`);
             }
           }
 
