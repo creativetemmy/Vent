@@ -23,17 +23,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check for Farcaster authentication from localStorage
     const checkFarcasterAuth = async () => {
-      const fid = localStorage.getItem('fid');
+      const fidStr = localStorage.getItem('fid');
       
-      if (fid) {
-        const { data: farcasterData } = await supabase
-          .from('farcaster_users')
-          .select('*')
-          .eq('fid', fid)
-          .maybeSingle();
-          
-        if (farcasterData) {
-          setFarcasterUser(farcasterData);
+      if (fidStr) {
+        // Convert string to number for the fid
+        const fid = parseInt(fidStr, 10);
+        
+        if (!isNaN(fid)) {
+          const { data: farcasterData } = await supabase
+            .from('farcaster_users')
+            .select('*')
+            .eq('fid', fid)
+            .maybeSingle();
+            
+          if (farcasterData) {
+            setFarcasterUser(farcasterData);
+          }
         }
       }
     };

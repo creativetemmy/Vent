@@ -17,7 +17,7 @@ export function FarcasterConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
   const { session, farcasterUser } = useAuth();
-  const { signIn, status, data, error } = useSignIn();
+  const { signIn, isPolling, data, error } = useSignIn();
 
   useEffect(() => {
     // Check if user has already connected Farcaster
@@ -67,10 +67,10 @@ export function FarcasterConnect() {
           </p>
           <Button
             onClick={handleConnect}
-            disabled={isConnecting || status === 'pending'}
+            disabled={isConnecting || isPolling}
             className="w-full bg-twitter hover:bg-twitter/90"
           >
-            {isConnecting || status === 'pending' ? "Connecting..." : "Connect Farcaster"}
+            {isConnecting || isPolling ? "Connecting..." : "Connect Farcaster"}
           </Button>
         </div>
       </DialogContent>

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useSignIn, Status } from "@farcaster/auth-kit";
+import { useSignIn } from "@farcaster/auth-kit";
 import { LogIn, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, status, data, error } = useSignIn();
+  const { signIn, isSuccess, isPolling, error, data } = useSignIn();
   const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 
   // Handle authentication success
   useEffect(() => {
-    if (status === Status.Success && data) {
+    if (isSuccess && data) {
       const handleSuccessfulAuth = async () => {
         try {
           // Fetch user data from Neynar API
@@ -140,7 +140,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
       };
 
       handleSuccessfulAuth();
-    } else if (status === Status.Error && error) {
+    } else if (error) {
       console.error("Farcaster auth error:", error);
       toast({
         title: "Sign-In Error",
@@ -148,7 +148,7 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
         variant: "destructive",
       });
     }
-  }, [status, data, error, toast, navigate, onSuccess]);
+  }, [isSuccess, data, error, toast, navigate, onSuccess]);
 
   const handleSignIn = () => {
     try {
@@ -184,11 +184,11 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
             fontSize: 18,
           }}
           onClick={handleSignIn}
-          disabled={status === Status.Pending}
+          disabled={isPolling}
           aria-label="Sign in with Farcaster"
         >
           <LogIn className="mr-2 h-5 w-5 opacity-90" />
-          {status === Status.Pending ? "Connecting..." : "Sign In with Farcaster Wallet"}
+          {isPolling ? "Connecting..." : "Sign In with Farcaster Wallet"}
         </button>
       )}
     </>
