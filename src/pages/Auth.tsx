@@ -23,7 +23,7 @@ const Auth = () => {
         navigate('/');
       } catch (error) {
         console.warn('Fallback redirect using window.location');
-        window.location.href = '/';
+        window.location.href = '/home';
       }
     }
   }, [session, navigate]);
