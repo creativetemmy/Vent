@@ -17,10 +17,8 @@ export function FarcasterConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
   const { session, farcasterUser } = useAuth();
-  const { signIn, isPolling, data, error } = useSignIn({
-    enabled: true,
-    timeoutInMs: 300000, // 5 minutes
-  });
+  // Using useSignIn without any configuration arguments
+  const { signIn, isPolling, data, error } = useSignIn();
 
   useEffect(() => {
     // Check if user has already connected Farcaster
