@@ -12,7 +12,7 @@ export default function VentNowPage() {
   
   React.useEffect(() => {
     if (!loading && !session) {
-      router.push('/');
+      router.push('/auth');
     }
   }, [session, loading, router]);
 

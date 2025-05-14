@@ -11,11 +11,6 @@ const nextConfig = {
         destination: '/home',
         permanent: true,
       },
-      {
-        source: '/vent/:path*',
-        destination: '/vent/[path]',
-        permanent: true,
-      },
     ];
   },
   // Configure webpack to handle polyfills for browser APIs

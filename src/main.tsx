@@ -1,8 +1,11 @@
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
 import './index.css'
+import { ToastProvider } from '@/hooks/use-toast'
 
-// Next.js handles routing differently, so we don't need a main entry point for React DOM
-// This file can remain as a placeholder or for any global initializations
-console.log('Next.js is handling the application rendering');
+createRoot(document.getElementById("root")!).render(
+  <ToastProvider>
+    <App />
+  </ToastProvider>
+);

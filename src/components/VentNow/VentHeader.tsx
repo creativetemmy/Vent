@@ -1,16 +1,16 @@
 
 import React from 'react';
 import { ArrowLeft, Wallet } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 const VentHeader: React.FC = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   return (
     <header className="fixed top-0 left-0 right-0 h-header bg-vent-bg border-b border-gray-800 z-10">
       <div className="max-w-lg mx-auto px-4 h-full flex items-center justify-between">
         <button 
-          onClick={() => router.back()} 
+          onClick={() => navigate(-1)} 
           className="text-white p-2"
         >
           <ArrowLeft className="h-5 w-5" />
