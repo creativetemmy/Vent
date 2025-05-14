@@ -28,7 +28,9 @@ const Header: React.FC = () => {
               </div>
               <Link to="/profile">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{session.user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>
+                    {session.user.email ? session.user.email.charAt(0).toUpperCase() : 'U'}
+                  </AvatarFallback>
                 </Avatar>
               </Link>
               <Button

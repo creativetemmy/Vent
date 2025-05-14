@@ -28,7 +28,8 @@ const VentCard: React.FC<VentCardProps> = ({ vent }) => {
   const [loadingVote, setLoadingVote] = useState(false);
 
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user?.id) return;
+    
     const loadData = async () => {
       const { data: profile } = await supabase
         .from('profiles')
@@ -45,7 +46,7 @@ const VentCard: React.FC<VentCardProps> = ({ vent }) => {
       setVotesOnThisVent(count ?? 0);
     };
     loadData();
-  }, [session?.user, vent.id]);
+  }, [session?.user?.id, vent.id]);
 
   const handleCardClick = () => {
     navigate(`/vent/${vent.id}`);
