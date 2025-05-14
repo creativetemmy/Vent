@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useSignIn } from '@farcaster/auth-kit';
+import { useSignIn, StatusAPIResponse } from '@farcaster/auth-kit';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cleanupAuthState } from '@/lib/utils';
@@ -43,8 +43,8 @@ export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
         username: data.username,
         displayName: data.displayName,
         // Handle potentially undefined properties
-        avatar: data?.pfp,
-        did: data?.custody?.did,
+        avatar: data.pfp || undefined,
+        did: typeof data.custody === 'object' && data.custody ? data.custody.did : undefined,
       };
 
       // Save user to state
