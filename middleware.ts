@@ -8,12 +8,13 @@ export function middleware(request: NextRequest) {
   
   // Check if user is logged in from the session cookie
   const isAuthenticated = request.cookies.has('sb-access-token') || 
-                        request.cookies.has('sb-refresh-token');
+                        request.cookies.has('sb-refresh-token') ||
+                        localStorage.getItem('fid') !== null;
   
   // Auth page accessible only if user is not logged in
   if (path === '/auth') {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/home', request.url));
     }
     return NextResponse.next();
   }

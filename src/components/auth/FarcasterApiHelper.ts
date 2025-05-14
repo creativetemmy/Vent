@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
@@ -9,26 +8,46 @@ export interface FarcasterUserInput {
   value: string;
 }
 
+export interface FarcasterUser {
+  fid: number;
+  username: string;
+  display_name?: string;
+  pfp_url?: string;
+  custody_address?: string;
+}
+
+/**
+ * Normalize user input to determine if it's an FID or username
+ */
 export const normalizeInput = (input: string): FarcasterUserInput => {
   input = input.trim();
-  if (/^\d+$/.test(input)) return { type: "fid", value: input };
+  // Remove @ if present
   if (input.startsWith("@")) input = input.slice(1);
+  
+  // If it's all digits, treat as FID
+  if (/^\d+$/.test(input)) return { type: "fid", value: input };
+  
+  // Otherwise treat as username
   return { type: "username", value: input };
 };
 
-export const fetchFarcasterUser = async (input: FarcasterUserInput) => {
+/**
+ * Fetch Farcaster user data from cache or API
+ */
+export const fetchFarcasterUser = async (input: FarcasterUserInput): Promise<FarcasterUser> => {
   const { type, value } = input;
   
   // First, try to find in Supabase if it's a username
   if (type === "username") {
-    const { data: cachedUser } = await supabase
+    const { data: cachedUser, error } = await supabase
       .from("farcaster_users")
       .select("*")
       .eq("username", value)
       .maybeSingle();
 
-    if (cachedUser) {
-      return cachedUser;
+    if (cachedUser && !error) {
+      console.log("Found user in cache:", cachedUser);
+      return cachedUser as FarcasterUser;
     }
   }
   
@@ -36,33 +55,53 @@ export const fetchFarcasterUser = async (input: FarcasterUserInput) => {
   const param = type === "fid" ? `fid=${value}` : `username=${value}`;
   const endpoint = type === "fid" ? "lookup" : "by_username";
   
-  const res = await fetch(
-    `${NEYNAR_API_URL}/${endpoint}?${param}`,
-    {
-      headers: { 
-        "accept": "application/json", 
-        "api_key": NEYNAR_API_KEY 
+  console.log(`Fetching from Neynar API: ${endpoint} with ${param}`);
+  
+  try {
+    const res = await fetch(
+      `${NEYNAR_API_URL}/${endpoint}?${param}`,
+      {
+        headers: { 
+          "accept": "application/json", 
+          "api_key": NEYNAR_API_KEY 
+        }
       }
+    );
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Neynar API error:", res.status, errorText);
+      throw new Error(`Account not found (${res.status}): ${errorText}`);
     }
-  );
-  
-  if (!res.ok){ 
-    throw new Error(`Account not found: ${res.status}`);
+    
+    const json = await res.json();
+    const user = json.user || (json.result?.user);
+    
+    if (!user) {
+      console.error("No user data in response:", json);
+      throw new Error("No user found, check spelling or FID.");
+    }
+    
+    console.log("User found from API:", user);
+    return user as FarcasterUser;
+  } catch (error) {
+    console.error("Error fetching Farcaster user:", error);
+    throw error;
   }
-  
-  const json = await res.json();
-  const user = json.user || (json.result?.user);
-  
-  if (!user) throw new Error("No user found, check spelling or FID.");
-
-  return user;
 };
 
-export const saveUserToSupabase = async (user: any) => {
+/**
+ * Save or update user data in Supabase
+ */
+export const saveUserToSupabase = async (user: FarcasterUser) => {
+  if (!user || !user.fid) {
+    throw new Error("Invalid user data");
+  }
+  
   // Use the upsert_farcaster_user RPC function to safely insert or update
   const { error, data } = await supabase.rpc("upsert_farcaster_user", {
     p_fid: user.fid,
-    p_username: user.username,
+    p_username: user.username || "",
     p_display_name: user.display_name || "",
     p_avatar_url: user.pfp_url || "",
     p_did: user.custody_address || "",
@@ -77,7 +116,18 @@ export const saveUserToSupabase = async (user: any) => {
   return data;
 };
 
+/**
+ * Store essential user data in local storage
+ */
 export const storeUserInLocalStorage = (fid: string, username: string) => {
   localStorage.setItem('fid', fid);
   localStorage.setItem('username', username);
+};
+
+/**
+ * Remove all auth data from storage (logout helper)
+ */
+export const clearFarcasterAuth = () => {
+  localStorage.removeItem('fid');
+  localStorage.removeItem('username');
 };

@@ -6,18 +6,19 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function RootPage() {
-  const { session, loading } = useAuth();
+  const { session, loading, farcasterUser } = useAuth();
   const router = useRouter();
   
   useEffect(() => {
     if (!loading) {
-      if (session) {
+      // Check for either a Supabase session or Farcaster user data
+      if (session || farcasterUser || localStorage.getItem('fid')) {
         router.push('/home');
       } else {
         router.push('/auth');
       }
     }
-  }, [session, loading, router]);
+  }, [session, farcasterUser, loading, router]);
 
   // Simple loading state until auth is determined
   return (

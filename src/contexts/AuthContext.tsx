@@ -7,18 +7,43 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   farcasterUser: any | null;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
   session: null, 
   loading: true,
-  farcasterUser: null
+  farcasterUser: null,
+  logout: async () => {}
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [farcasterUser, setFarcasterUser] = useState(null);
+
+  const logout = async () => {
+    // Clean up Supabase auth
+    await supabase.auth.signOut({ scope: 'global' });
+    
+    // Clean up Farcaster auth
+    localStorage.removeItem('fid');
+    localStorage.removeItem('username');
+    
+    // Clean up any other potential auth leftovers
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Reset state
+    setSession(null);
+    setFarcasterUser(null);
+    
+    // Force page reload
+    window.location.href = '/auth';
+  };
 
   useEffect(() => {
     // Check for Farcaster authentication from localStorage
@@ -47,8 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
-        setLoading(false);
-
+        
         if (session?.user) {
           // Try to fetch associated Farcaster user
           const { data: farcasterData } = await supabase
@@ -59,8 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           setFarcasterUser(farcasterData);
         } else {
+          // If no session, check for Farcaster login
           await checkFarcasterAuth();
         }
+        
+        setLoading(false);
       }
     );
 
@@ -87,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, loading, farcasterUser }}>
+    <AuthContext.Provider value={{ session, loading, farcasterUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
