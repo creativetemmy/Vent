@@ -136,6 +136,9 @@ interface ToastContextType {
 
 const ToastContext = React.createContext<ToastContextType | null>(null)
 
+// Create a separate dispatch context
+const DispatchContext = React.createContext<React.Dispatch<Action> | null>(null)
+
 function useToast() {
   const context = React.useContext(ToastContext)
 
@@ -146,21 +149,26 @@ function useToast() {
   return context
 }
 
-const dispatch = React.createContext<React.Dispatch<Action> | null>(null)
-  .Provider.props.value
+// Fix: Access the dispatch from the context instead of directly from the provider props
+const dispatch = React.useCallback((action: Action) => {
+  const dispatchFn = React.useContext(DispatchContext)
+  if (dispatchFn) {
+    dispatchFn(action)
+  }
+}, [])
 
 function toast(props: Omit<ToasterToast, "id">) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
-    dispatch?.({
+    dispatch({
       type: actionTypes.UPDATE_TOAST,
       toast: { ...props, id },
     })
 
-  const dismiss = () => dispatch?.({ type: actionTypes.DISMISS_TOAST, toastId: id })
+  const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
 
-  dispatch?.({
+  dispatch({
     type: actionTypes.ADD_TOAST,
     toast: {
       ...props,
@@ -179,8 +187,46 @@ function toast(props: Omit<ToasterToast, "id">) {
   }
 }
 
-function useToastDispatch() {
-  return dispatch
-}
-
 export { useToast, toast }
+
+// Export a ToastProvider for use in components/ui/toaster.tsx
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatchAction] = React.useReducer(reducer, {
+    toasts: [],
+  })
+
+  return (
+    <DispatchContext.Provider value={dispatchAction}>
+      <ToastContext.Provider
+        value={{
+          toasts: state.toasts,
+          toast: (props) => {
+            const id = genId()
+            
+            dispatchAction({
+              type: actionTypes.ADD_TOAST,
+              toast: {
+                ...props,
+                id,
+                open: true,
+                onOpenChange: (open) => {
+                  if (!open) dispatchAction({ type: actionTypes.DISMISS_TOAST, toastId: id })
+                },
+              },
+            })
+            
+            return id
+          },
+          dismiss: (toastId) => dispatchAction({ type: actionTypes.DISMISS_TOAST, toastId }),
+          update: (id, props) => 
+            dispatchAction({
+              type: actionTypes.UPDATE_TOAST,
+              toast: { ...props, id },
+            }),
+        }}
+      >
+        {children}
+      </ToastContext.Provider>
+    </DispatchContext.Provider>
+  )
+}
