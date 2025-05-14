@@ -83,8 +83,8 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
         fid: data.fid,
         username: data.username,
         displayName: data.displayName,
-        avatar: data.pfp || undefined, // Handle potentially missing pfp property
-        did: data.custody?.did || undefined, // Handle potentially missing did property
+        avatar: data.pfp, // Using optional chaining since pfp might be undefined
+        did: data.custody?.did, // Using optional chaining since did might be undefined
       };
 
       // Save user to state
@@ -137,8 +137,7 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
   const login = () => {
     if (!isConnected) {
       setStatus('connecting');
-      // Fixed: using signIn() without arguments as the API seems to have changed
-      signIn();
+      signIn(); // Call without arguments as per the updated API
     }
   };
 
