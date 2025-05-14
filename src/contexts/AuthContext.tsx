@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useFarcasterAuth } from '@/hooks/useFarcasterAuth';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
 
 interface User {
   id: string;

@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFarcasterAuth } from '@/hooks/useFarcasterAuth';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
 import FarcasterLoginButton from '@/components/FarcasterLoginButton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 

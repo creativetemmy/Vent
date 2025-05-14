@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useFarcasterAuth } from '@/hooks/useFarcasterAuth';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
 import { Loader2, LogIn } from 'lucide-react';
 
 interface FarcasterLoginButtonProps {

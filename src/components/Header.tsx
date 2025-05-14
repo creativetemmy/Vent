@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Wallet, LogOut } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFarcasterAuth } from '@/hooks/useFarcasterAuth';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 

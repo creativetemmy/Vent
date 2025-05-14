@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useFarcasterAuth } from '@/hooks/useFarcasterAuth';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

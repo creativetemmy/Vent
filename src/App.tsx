@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/hooks/use-toast";
 import Index from "./pages/Index";
@@ -14,7 +14,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Splash from "./pages/Splash";
 import Auth from "./pages/Auth";
-import { FarcasterSignInWrapper, FarcasterAuthProvider } from "@/hooks/useFarcasterAuth";
+import { FarcasterSignInWrapper, FarcasterAuthProvider } from "@/hooks/farcaster-auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a new QueryClient instance
