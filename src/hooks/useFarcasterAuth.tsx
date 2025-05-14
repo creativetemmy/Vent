@@ -1,9 +1,12 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthKitProvider, Status, SignInButton, useSignIn } from '@farcaster/auth-kit';
+import { AuthKitProvider, useSignIn } from '@farcaster/auth-kit';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cleanupAuthState } from '@/lib/utils';
+
+// Define our own status type since auth-kit doesn't export it
+type AuthStatus = 'connected' | 'connecting' | 'disconnected';
 
 interface FarcasterUser {
   fid: number;
@@ -14,7 +17,7 @@ interface FarcasterUser {
 }
 
 interface FarcasterAuthContextType {
-  status: Status;
+  status: AuthStatus;
   user: FarcasterUser | null;
   isLoading: boolean;
   error: string | null;
@@ -46,9 +49,10 @@ export const FarcasterSignInWrapper = ({ children }: { children: ReactNode }) =>
 };
 
 export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => {
-  const { signIn, status, error, userData, connect, disconnect } = useSignIn();
+  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn();
   const [user, setUser] = useState<FarcasterUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<AuthStatus>('disconnected');
 
   useEffect(() => {
     // Check if we have a stored user in localStorage
@@ -64,14 +68,23 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
   }, []);
 
   useEffect(() => {
-    if (status === 'connected' && userData) {
+    // Update status based on connection state
+    if (isConnected) {
+      setStatus('connected');
+    } else if (isError) {
+      setStatus('disconnected');
+    }
+  }, [isConnected, isError]);
+
+  useEffect(() => {
+    if (isConnected && isSuccess && data) {
       // User has connected their Farcaster account
       const farcasterUser = {
-        fid: userData.fid,
-        username: userData.username,
-        displayName: userData.displayName,
-        avatar: userData.pfp,
-        did: userData.custody?.did,
+        fid: data.fid,
+        username: data.username,
+        displayName: data.displayName,
+        avatar: data.pfp,
+        did: data.custody?.did,
       };
 
       // Save user to state
@@ -83,10 +96,10 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
       
       // Save user to Supabase
       saveUserToSupabase(farcasterUser);
-    } else if (status === 'disconnected') {
+    } else if (isError || !isConnected) {
       setUser(null);
     }
-  }, [status, userData]);
+  }, [isConnected, isSuccess, data, isError]);
 
   const saveUserToSupabase = async (farcasterUser: FarcasterUser) => {
     setIsLoading(true);
@@ -122,8 +135,9 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
   };
 
   const login = () => {
-    if (status !== 'connected') {
-      connect();
+    if (!isConnected) {
+      setStatus('connecting');
+      signIn();
     }
   };
 
@@ -131,7 +145,7 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
     setIsLoading(true);
     try {
       // Disconnect from Farcaster
-      disconnect();
+      signOut();
       
       // Clean up localStorage
       localStorage.removeItem('fid');
@@ -142,6 +156,7 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
       
       // Reset state
       setUser(null);
+      setStatus('disconnected');
       
       toast({
         title: 'Logged Out',
@@ -161,7 +176,14 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
 
   return (
     <FarcasterAuthContext.Provider
-      value={{ status, user, isLoading, error: error?.message || null, login, logout }}
+      value={{ 
+        status, 
+        user, 
+        isLoading, 
+        error: error?.message || null, 
+        login, 
+        logout 
+      }}
     >
       {children}
     </FarcasterAuthContext.Provider>
