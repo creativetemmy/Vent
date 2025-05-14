@@ -12,8 +12,8 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/vent/:id',
-        destination: '/vent/[id]',
+        source: '/vent/:path*',
+        destination: '/vent/[path]',
         permanent: true,
       },
     ];

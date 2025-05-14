@@ -2,10 +2,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import Header from '@/app/components/Header';
-import Tabs from '@/app/components/Tabs';
-import Feed from '@/app/components/Feed';
-import Footer from '@/app/components/Footer';
+import Header from '@/components/Header';
+import Tabs from '@/components/Tabs';
+import Feed from '@/components/Feed';
+import Footer from '@/components/Footer';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('top');
