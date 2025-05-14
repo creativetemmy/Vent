@@ -19,8 +19,8 @@ const FarcasterAuthButton: React.FC<FarcasterAuthButtonProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  // Using useSignIn without any configuration arguments
-  const { signIn, isSuccess, isPolling, error, data } = useSignIn();
+  // Using useSignIn with configuration argument
+  const { signIn, isSuccess, isPolling, error, data } = useSignIn({});
   const [hasMetaMask, setHasMetaMask] = useState<boolean>(true);
 
   useEffect(() => {

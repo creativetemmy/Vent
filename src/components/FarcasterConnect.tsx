@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -17,8 +16,8 @@ export function FarcasterConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
   const { session, farcasterUser } = useAuth();
-  // Using useSignIn without any configuration arguments
-  const { signIn, isPolling, data, error } = useSignIn();
+  // Using useSignIn with configuration argument
+  const { signIn, isPolling, data, error } = useSignIn({});
 
   useEffect(() => {
     // Check if user has already connected Farcaster
