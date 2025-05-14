@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +24,7 @@ const Auth = () => {
         navigate('/');
       } catch (error) {
         console.warn('Fallback redirect using window.location');
-        window.location.href = '/home';
+        window.location.href = '/';
       }
     }
   }, [session, navigate]);
