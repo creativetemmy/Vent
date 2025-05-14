@@ -4,15 +4,16 @@ import { Link } from 'react-router-dom';
 import { Wallet, LogOut } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFarcasterAuth } from '@/hooks/useFarcasterAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { supabase } from '@/integrations/supabase/client';
 
 const Header: React.FC = () => {
   const { session } = useAuth();
+  const { user, logout } = useFarcasterAuth();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
   };
 
   return (
@@ -20,7 +21,7 @@ const Header: React.FC = () => {
       <div className="max-w-lg mx-auto px-4 h-full flex flex-col">
         <div className="flex justify-between items-center h-14">
           <Link to="/" className="text-xl font-bold text-white">Vent</Link>
-          {session && (
+          {user && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 text-white bg-gradient-to-r from-twitter to-[#7B61FF] px-3 py-1 rounded-full">
                 <Wallet className="h-4 w-4" />
@@ -28,9 +29,13 @@ const Header: React.FC = () => {
               </div>
               <Link to="/profile">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {session.user.email ? session.user.email.charAt(0).toUpperCase() : 'U'}
-                  </AvatarFallback>
+                  {user.avatar ? (
+                    <AvatarImage src={user.avatar} alt={user.username} />
+                  ) : (
+                    <AvatarFallback>
+                      {user.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
               </Link>
               <Button

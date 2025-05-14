@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/hooks/use-toast";
 import Index from "./pages/Index";
@@ -13,6 +13,9 @@ import VentDetails from "./pages/VentDetails";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Splash from "./pages/Splash";
+import Auth from "./pages/Auth";
+import { FarcasterSignInWrapper, FarcasterAuthProvider } from "@/hooks/useFarcasterAuth";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -23,20 +26,41 @@ const App: React.FC = () => {
       <ToastProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/splash" element={<Splash />} />
-                  <Route path="/" element={<Index />} />
-                  <Route path="/vent-now" element={<VentNow />} />
-                  <Route path="/vent/:id" element={<VentDetails />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
+            <FarcasterSignInWrapper>
+              <FarcasterAuthProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/splash" element={<Splash />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/" element={
+                        <ProtectedRoute>
+                          <Index />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/vent-now" element={
+                        <ProtectedRoute>
+                          <VentNow />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/vent/:id" element={
+                        <ProtectedRoute>
+                          <VentDetails />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/profile" element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </FarcasterAuthProvider>
+            </FarcasterSignInWrapper>
           </AuthProvider>
         </QueryClientProvider>
       </ToastProvider>
