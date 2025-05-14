@@ -17,7 +17,7 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/auth');
+    router.push('/');
   };
 
   return (
@@ -33,7 +33,9 @@ const Header: React.FC = () => {
               </div>
               <Link href="/profile">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{session.user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                  <AvatarFallback>
+                    {session.user.email ? session.user.email.charAt(0).toUpperCase() : 'U'}
+                  </AvatarFallback>
                 </Avatar>
               </Link>
               <Button

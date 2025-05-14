@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 
 const Footer: React.FC = () => {
   const pathname = usePathname();
-  const isHome = pathname === '/';
+  const isHome = pathname === '/' || pathname === '/home';
   const isProfile = pathname === '/profile';
   
   return (
