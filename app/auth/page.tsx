@@ -1,30 +1,30 @@
 
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import FarcasterAuthButton from "@/components/FarcasterAuthButton";
 import { AuthKitProvider } from "@farcaster/auth-kit";
 import { useAuth } from '@/contexts/AuthContext';
 import FarcasterUsernameLogin from '@/components/auth/FarcasterUsernameLogin';
 import { normalizeInput, fetchFarcasterUser, saveUserToSupabase, storeUserInLocalStorage } from '@/components/auth/FarcasterApiHelper';
+import NextFarcasterAuthButton from '@/components/NextFarcasterAuthButton';
 
-const Auth = () => {
+export default function AuthPage() {
   const { session } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     // Check if user is already logged in and redirect if needed
     if (session) {
-      try {
-        navigate('/');
-      } catch (error) {
-        console.warn('Fallback redirect using window.location');
-        window.location.href = '/';
-      }
+      router.push('/');
     }
-  }, [session, navigate]);
+  }, [session, router]);
 
   const fetchAndUpsertFarcasterUser = async (input: string) => {
     setLoading(true);
@@ -52,12 +52,7 @@ const Auth = () => {
       title: "Success",
       description: "Farcaster account connected!"
     });
-    try {
-      navigate('/');
-    } catch (error) {
-      console.warn('Fallback redirect using window.location');
-      window.location.href = '/';
-    }
+    router.push('/');
   };
 
   const handleLogin = async (fid: string, username: string) => {
@@ -65,12 +60,7 @@ const Auth = () => {
     storeUserInLocalStorage(fid, username);
     
     // Navigate to home page
-    try {
-      navigate('/');
-    } catch (error) {
-      console.warn('Fallback redirect using window.location');
-      window.location.href = '/';
-    }
+    router.push('/');
   };
 
   return (
@@ -84,7 +74,7 @@ const Auth = () => {
           <h1 className="text-2xl font-bold text-white mb-6 text-center">Sign In with Farcaster</h1>
           <div className="space-y-4">
             <div className="flex flex-col gap-2 items-center">
-              <FarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
+              <NextFarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
               <span className="text-vent-muted text-xs">Secure &mdash; Sign in with your Farcaster Wallet</span>
             </div>
             <div className="flex items-center my-2">
@@ -106,6 +96,4 @@ const Auth = () => {
       </div>
     </AuthKitProvider>
   );
-};
-
-export default Auth;
+}
