@@ -1,193 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
-import FarcasterAuthButton from "@/components/FarcasterAuthButton";
-import { AuthKitProvider } from "@farcaster/auth-kit";
-import { useAuth } from '@/contexts/AuthContext';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
+import FarcasterLoginButton from '@/components/FarcasterLoginButton';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-const NEYNAR_API_URL = "https://api.neynar.com/v2/farcaster/user";
-const NEYNAR_API_KEY = "2725A6F7-8E91-419F-80F0-8ED75BDB8223";
-
-const Auth = () => {
-  const { session } = useAuth();
+const Auth: React.FC = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    const signOutCurrentUser = async () => {
-      if (session) {
-        await supabase.auth.signOut();
-      }
-    };
-    signOutCurrentUser();
-  }, [session]);
+  const { user, status } = useFarcasterAuth();
 
-  const [farcasterInput, setFarcasterInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const normalizeInput = (input: string) => {
-    input = input.trim();
-    if (/^\d+$/.test(input)) return { type: "fid" as const, value: input };
-    if (input.startsWith("@")) input = input.slice(1);
-    return { type: "username" as const, value: input };
-  };
-
-  const fetchAndUpsertFarcasterUser = async (input: string) => {
-    setLoading(true);
-    setErrorMsg(null);
-
-    const { type, value } = normalizeInput(input);
-
-    let user = null;
-
-    try {
-      const param = type === "fid" ? `fid=${value}` : `username=${value}`;
-      const res = await fetch(
-        `${NEYNAR_API_URL}/by_username?${param}`,
-        {
-          headers: { "accept": "application/json", "api_key": NEYNAR_API_KEY }
-        }
-      );
-      if (!res.ok){ 
-        throw new Error("Account not found via Neynar");
-      } 
-      const json = await res.json();
-      user = json.user;
-      if (!user) throw new Error("No user found, check spelling or FID.");
-
-      await supabase.rpc("upsert_farcaster_user", {
-        p_fid: user.fid,
-        p_username: user.username,
-        p_display_name: user.display_name || "",
-        p_avatar_url: user.pfp_url || "",
-        p_did: user.object?.properties?.did || user.custody_address || "",
-        p_user_id: null
-      });
-
-      await handleLogin(user.fid, user.username);
-    } catch (err: any) {
-      if (type === "username") {
-        const { data: cached } = await supabase
-          .from("farcaster_users")
-          .select("*")
-          .eq("username", value)
-          .maybeSingle();
-
-        if (cached) {
-          await handleLogin(cached.fid.toString(), cached.username);
-          return;
-        }
-
-        setErrorMsg("Invalid Farcaster account, try DID.");
-        toast({
-          title: "User Not Found",
-          description: "Invalid Farcaster account, try DID.",
-          variant: "destructive"
-        });
-      } else {
-        setErrorMsg(err?.message || "Unknown error.");
-        toast({
-          title: "User Not Found",
-          description: err?.message || "No Farcaster account found.",
-          variant: "destructive"
-        });
-      }
-    } finally {
-      setLoading(false);
+  // Redirect to homepage if user is already logged in
+  React.useEffect(() => {
+    if (status === 'connected' && user) {
+      navigate('/');
     }
-  };
-
-  const handleFarcasterLogin = async () => {
-    if (!farcasterInput) return;
-    await fetchAndUpsertFarcasterUser(farcasterInput);
-  };
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !loading) handleFarcasterLogin();
-  };
-
-  const handleFarcasterAuthSuccess = async () => {
-    toast({
-      title: "Success",
-      description: "Farcaster account connected!"
-    });
-    await supabase.auth.signOut();
-    navigate('/app');
-  };
+  }, [user, status, navigate]);
 
   return (
-    <AuthKitProvider
-      config={{
-        rpcUrl: 'https://mainnet.optimism.io',
-        domain: window.location.host,
-        siweUri: window.location.origin,
-      }}
-    >
-      <div className="min-h-screen flex items-center justify-center bg-vent-bg">
-        <div className="w-full max-w-[343px] p-6 bg-vent-card rounded-lg shadow-xl">
-          <h1 className="text-2xl font-bold text-white mb-6 text-center">Sign In with Farcaster</h1>
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2 items-center">
-              <FarcasterAuthButton onSuccess={handleFarcasterAuthSuccess} />
-              <span className="text-vent-muted text-xs">Secure &mdash; Sign in with your Farcaster Wallet</span>
-            </div>
-            <div className="flex items-center my-2">
-              <span className="flex-grow border-t border-gray-700" />
-              <span className="mx-3 text-gray-500 text-xs">or</span>
-              <span className="flex-grow border-t border-gray-700" />
-            </div>
-            <div className="bg-vent-bg/80 rounded p-4">
-              <label className="block text-xs text-vent-muted mb-2">
-                Can't use wallet? <span className="font-semibold">Enter your Farcaster username or FID</span> instead:
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="e.g. alice or 12345"
-                  value={farcasterInput}
-                  onChange={(e) => setFarcasterInput(e.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  className="w-full"
-                  disabled={loading}
-                  autoFocus={false}
-                />
-                <Button
-                  onClick={handleFarcasterLogin}
-                  disabled={loading || !farcasterInput}
-                  className="w-fit min-w-[100px]"
-                  variant="secondary"
-                >
-                  {loading ? "Checking..." : "Continue"}
-                </Button>
-              </div>
-              {errorMsg && (
-                <div className="text-xs text-red-500 mt-2">{errorMsg}</div>
-              )}
-            </div>
+    <div className="min-h-screen bg-vent-bg flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-vent-card border-gray-800">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-white">Welcome to Vent</CardTitle>
+          <CardDescription className="text-gray-400">
+            Share your Web3 experiences and connect with others
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center text-white">
+            <p className="mb-4">Sign in with your Farcaster account to continue</p>
+            <FarcasterLoginButton className="w-full bg-gradient-to-r from-twitter to-[#7B61FF]" />
           </div>
-          <div className="mt-6 text-sm text-center text-vent-muted">
-            Only Farcaster-enabled accounts can log in.<br />
-            Powered by Neynar API &amp; @farcaster/auth-kit
-          </div>
-        </div>
-      </div>
-    </AuthKitProvider>
+        </CardContent>
+        <CardFooter className="text-center text-sm text-gray-400">
+          <p className="w-full">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 
-async function handleLogin(fid: string, username: string) {
-  // For example, store the user data in localStorage (or update your auth context) and redirect.
-  localStorage.setItem('fid', fid);
-  localStorage.setItem('username', username);
-  window.location.href = '/';
-}
-
-const fid = 12345; // Example number
-handleLogin(fid.toString(), 'exampleUsername');
-
 export default Auth;
-

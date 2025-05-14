@@ -1,13 +1,15 @@
 
+'use client';
+
 import React, { useState } from 'react';
-import Header from '@/components/Header';
-import Tabs from '@/components/Tabs';
-import Feed from '@/components/Feed';
-import Footer from '@/components/Footer';
+import Header from '@/app/components/Header';
+import Tabs from '@/app/components/Tabs';
+import Feed from '@/app/components/Feed';
+import Footer from '@/app/components/Footer';
 
-const Index = () => {
+export default function HomePage() {
   const [activeTab, setActiveTab] = useState('top');
-
+  
   return (
     <div className="min-h-screen bg-vent-bg flex flex-col">
       <Header />
@@ -20,6 +22,4 @@ const Index = () => {
       <Footer />
     </div>
   );
-};
-
-export default Index;
+}

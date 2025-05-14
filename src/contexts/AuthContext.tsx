@@ -1,67 +1,64 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useFarcasterAuth } from '@/hooks/farcaster-auth';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-
-interface AuthContextType {
-  session: Session | null;
-  loading: boolean;
-  farcasterUser: any | null;
+interface User {
+  id: string;
+  email?: string | null;
+  farcasterUsername?: string | null;
 }
 
-const AuthContext = createContext<AuthContextType>({ 
-  session: null, 
-  loading: true,
-  farcasterUser: null
+interface AuthSession {
+  user: User;
+}
+
+interface AuthContextType {
+  session: AuthSession | null;
+  loading: boolean;
+  farcasterUser: any;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  session: null,
+  loading: false,
+  farcasterUser: null,
+  logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const { user: farcasterUser, isLoading, logout: farcasterLogout } = useFarcasterAuth();
   const [loading, setLoading] = useState(true);
-  const [farcasterUser, setFarcasterUser] = useState(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setLoading(false);
-
-        if (session?.user) {
-          // Try to fetch associated Farcaster user
-          const { data: farcasterData } = await supabase
-            .from('farcaster_users')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
-          setFarcasterUser(farcasterData);
-        } else {
-          setFarcasterUser(null);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        const { data: farcasterData } = await supabase
-          .from('farcaster_users')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-        
-        setFarcasterUser(farcasterData);
+    if (!isLoading) {
+      if (farcasterUser) {
+        // Create a session based on Farcaster user
+        setSession({
+          user: {
+            id: `farcaster:${farcasterUser.fid}`,
+            email: null,
+            farcasterUsername: farcasterUser.username,
+          }
+        });
+      } else {
+        setSession(null);
       }
       setLoading(false);
-    });
+    }
+  }, [farcasterUser, isLoading]);
 
-    return () => subscription.unsubscribe();
-  }, []);
+  const logout = async () => {
+    await farcasterLogout();
+  };
 
   return (
-    <AuthContext.Provider value={{ session, loading, farcasterUser }}>
+    <AuthContext.Provider value={{
+      session,
+      loading: loading || isLoading,
+      farcasterUser,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

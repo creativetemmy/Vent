@@ -1,11 +1,10 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+@import '@farcaster/auth-kit/styles.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-
-/* Import Farcaster Auth Kit CSS */
-@import '@farcaster/auth-kit/styles.css';
 
 @layer base {
   :root {

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -65,16 +66,22 @@ const VentDetails: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user?.id) return;
+    
     async function fetchPoints() {
-      const { data } = await supabase.from('profiles').select('points').eq('id', session.user.id).maybeSingle();
+      const { data } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', session.user.id)
+        .maybeSingle();
       setUserPoints(data?.points ?? 0);
     }
     fetchPoints();
-  }, [session?.user, isPostingReply]);
+  }, [session?.user?.id, isPostingReply]);
 
   const handlePostCounterVent = async () => {
     if (!session?.user) return;
+    
     if (!counterReply.trim()) {
       toast({ title: "Reply Required", description: "Type your counter-vent before posting.", variant: "destructive" });
       return;
