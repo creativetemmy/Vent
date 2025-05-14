@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,18 +10,20 @@ import '../src/index.css';
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/hooks/use-toast";
 
-const queryClient = new QueryClient();
-
+// Create QueryClient at the component level, not at the module level
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Create a client inside component to ensure it's only created client-side
+  const [queryClient] = React.useState(() => new QueryClient());
+
   return (
     <html lang="en">
       <body>
-        <QueryClientProvider client={queryClient}>
-          <ToastProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <TooltipProvider>
                 <Toaster />
@@ -28,8 +31,8 @@ export default function RootLayout({
                 {children}
               </TooltipProvider>
             </AuthProvider>
-          </ToastProvider>
-        </QueryClientProvider>
+          </QueryClientProvider>
+        </ToastProvider>
       </body>
     </html>
   );

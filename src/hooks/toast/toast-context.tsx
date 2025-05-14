@@ -1,6 +1,6 @@
 
 import * as React from "react"
-import { ToastContextType, Action, State } from "./toast-types"
+import { ToastContextType, Action } from "./toast-types"
 import { reducer } from "./toast-reducer"
 import { genId, setDispatch } from "./toast-utils"
 import { actionTypes } from "./toast-types"
@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setDispatch(dispatch)
   }, [dispatch])
 
-  const contextValue: ToastContextType = React.useMemo(
+  const contextValue = React.useMemo(
     () => ({
       toasts: state.toasts,
       toast: (props) => {
@@ -47,7 +47,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           toast: { ...props, id },
         }),
     }),
-    [state.toasts, dispatch]
+    [state.toasts]
   )
 
   return (
