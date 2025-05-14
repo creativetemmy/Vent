@@ -1,6 +1,8 @@
 
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import VentCard from './VentCard';
+import VentCard from '@/components/VentCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 

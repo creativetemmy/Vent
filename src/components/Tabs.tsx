@@ -1,5 +1,7 @@
 
-import React, { useState } from 'react';
+'use client';
+
+import React from 'react';
 
 interface TabsProps {
   activeTab: string;
