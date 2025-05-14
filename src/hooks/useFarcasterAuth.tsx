@@ -83,8 +83,8 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
         fid: data.fid,
         username: data.username,
         displayName: data.displayName,
-        avatar: data.pfp,
-        did: data.custody?.did,
+        avatar: data.pfp || null, // Fixing the type issue with pfp 
+        did: data.custody?.did || null, // Fixing the type issue with did
       };
 
       // Save user to state
@@ -137,7 +137,7 @@ export const FarcasterAuthProvider = ({ children }: { children: ReactNode }) => 
   const login = () => {
     if (!isConnected) {
       setStatus('connecting');
-      signIn();
+      signIn(); // This is the correct way to call signIn() without arguments
     }
   };
 
