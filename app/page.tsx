@@ -1,31 +1,28 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function HomePage() {
-  const { session } = useAuth();
+export default function RootPage() {
+  const { session, loading } = useAuth();
   const router = useRouter();
   
-  React.useEffect(() => {
-    if (!session) {
-      router.push('/auth');
+  useEffect(() => {
+    if (!loading) {
+      if (session) {
+        router.push('/home');
+      } else {
+        router.push('/auth');
+      }
     }
-  }, [session, router]);
+  }, [session, loading, router]);
 
-  // If no session yet, show loading
-  if (!session) {
-    return <div className="min-h-screen bg-vent-bg flex items-center justify-center">
-      <div className="animate-pulse text-white">Loading...</div>
-    </div>;
-  }
-
+  // Simple loading state until auth is determined
   return (
-    <div className="min-h-screen bg-vent-bg">
-      <h1 className="text-white text-2xl p-6">Welcome to Vent</h1>
-      <p className="text-vent-muted p-6">This is the Next.js version of the Vent app.</p>
+    <div className="min-h-screen bg-vent-bg flex items-center justify-center">
+      <div className="animate-pulse text-white">Loading...</div>
     </div>
   );
 }
