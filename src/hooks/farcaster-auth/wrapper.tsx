@@ -11,8 +11,8 @@ export const FarcasterSignInWrapper = ({ children }: { children: ReactNode }) =>
         domain: window.location.host,
         siweUri: window.location.origin,
         relay: 'https://relay.farcaster.xyz',
-        // Use client ID properly according to current version
-        clientId: NEYNAR_CLIENT_ID, // Changed from neynarClientId to clientId
+        // Use the correct property based on current @farcaster/auth-kit version
+        apiKey: NEYNAR_CLIENT_ID, // Changed to apiKey which is the correct property
       }}
     >
       {children}

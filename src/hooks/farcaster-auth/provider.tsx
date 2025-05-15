@@ -8,8 +8,8 @@ import { FarcasterAuthContext } from './context';
 import { AuthStatus, FarcasterUser, ProviderProps } from './types';
 
 export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
-  // Remove appName since it's not supported in the current version
-  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn();
+  // The useSignIn hook requires an empty object as argument
+  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn({});
   const [user, setUser] = useState<FarcasterUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<AuthStatus>('disconnected');
@@ -44,9 +44,9 @@ export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
         username: data.username,
         displayName: data.displayName,
         // Fix property access to match actual response structure
-        avatar: data.pfp || undefined, // Use pfp instead of profileImage
+        avatar: data.pfpUrl || undefined, // Use correct property name for avatar
         // Fix did property access
-        did: data.custody ? data.custody : undefined, // custody is directly the DID string
+        did: typeof data.custody === 'string' ? data.custody : undefined, // Handle as string
       };
 
       // Save user to state
