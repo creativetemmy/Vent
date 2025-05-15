@@ -8,7 +8,8 @@ import { FarcasterAuthContext } from './context';
 import { AuthStatus, FarcasterUser, ProviderProps } from './types';
 
 export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
-  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn({ appName: 'Vent' });
+  // Remove appName since it's not supported in the current version
+  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn();
   const [user, setUser] = useState<FarcasterUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<AuthStatus>('disconnected');
@@ -42,9 +43,10 @@ export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
         fid: data.fid,
         username: data.username,
         displayName: data.displayName,
-        // Handle potentially undefined properties
-        avatar: data.profileImage || undefined,
-        did: data.custody?.type === 'account' ? data.custody.address : undefined,
+        // Fix property access to match actual response structure
+        avatar: data.pfp || undefined, // Use pfp instead of profileImage
+        // Fix did property access
+        did: data.custody ? data.custody : undefined, // custody is directly the DID string
       };
 
       // Save user to state
