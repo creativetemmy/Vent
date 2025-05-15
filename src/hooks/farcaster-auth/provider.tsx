@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useSignIn, StatusAPIResponse } from '@farcaster/auth-kit';
+import { useSignIn } from '@farcaster/auth-kit';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cleanupAuthState } from '@/lib/utils';
@@ -8,7 +8,7 @@ import { FarcasterAuthContext } from './context';
 import { AuthStatus, FarcasterUser, ProviderProps } from './types';
 
 export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
-  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn();
+  const { signIn, signOut, isConnected, isSuccess, isError, error, data } = useSignIn({ appName: 'Vent' });
   const [user, setUser] = useState<FarcasterUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<AuthStatus>('disconnected');
@@ -43,8 +43,8 @@ export const FarcasterAuthProvider = ({ children }: ProviderProps) => {
         username: data.username,
         displayName: data.displayName,
         // Handle potentially undefined properties
-        avatar: data.pfp || undefined,
-        did: typeof data.custody === 'object' && data.custody ? data.custody.did : undefined,
+        avatar: data.profileImage || undefined,
+        did: data.custody?.type === 'account' ? data.custody.address : undefined,
       };
 
       // Save user to state
